@@ -8,9 +8,7 @@ export default function Header() {
                 <Link to="/">
                     <button className="btn btn-ghost text-lg">Home</button>
                 </Link>
-                <Link to="/consent">
-                    <button className="btn btn-ghost text-lg">Start</button>
-                </Link>
+
 
             </div>
 

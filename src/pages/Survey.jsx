@@ -5,7 +5,7 @@ export default function Consetn() {
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Survey</h1>
-            <button className="btn btn-primary" >
+            <button className="btn btn-neutral-content" >
                 Submit
             </button>
         </div>

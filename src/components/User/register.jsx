@@ -29,15 +29,11 @@ export default function Register({ onClose }) {
                 email: user.email,
                 userName: formData.userName,
                 prolificId: formData.prolificId || null,
-                score: {
-                    motivation: 0,
-                    level1: 0,
-                    level2: 0,
-                    level3: 0,
-                    level4: 0,
-                    level5: 0,
-                    level6: 0,
-                }
+                consentCompleted: false,
+                preTestCompleted: false,
+                trainingCompleted: false,
+                postTestCompleted: false,
+                surveyCompleted: false,
             });
             onClose();
         } catch (err) {

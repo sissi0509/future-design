@@ -22,6 +22,5 @@ export const logAutoFlush = () => {
     return () => {
         clearInterval(interval);
         window.removeEventListener('online', flushAll);
-        console.log('Cleanup ran!');
     };
 };
