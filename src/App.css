@@ -1,0 +1,14 @@
+
+.review-container {
+    display: flex;
+    gap: 20px;
+    /* Space between the two components */
+    align-items: flex-start;
+    /* Align them to the top */
+}
+
+.review-container {
+    display: flex;
+    gap: 100px;
+    align-items: flex-start;
+}
