@@ -5,7 +5,7 @@ import { logClientError } from '../services/errorHandle/logClientError';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 
-export default function Consent() {
+export default function Consent({ onComplete }) {
 
     const { currentUser, userProfile } = useAuth();
     const [hasAgreed, setHasAgreed] = useState(false);
@@ -28,6 +28,7 @@ export default function Consent() {
             await updateDoc(userRef, {
                 consentCompleted: true,
             });
+            if (onComplete) onComplete();
 
         } catch (err) {
             console.error('Consent error:', err);

@@ -22,8 +22,8 @@ const preTestQuestions = [
         type: 'text',
         key: 'q3',
         label: '3. What concerns or hopes do you have about AI?',
-        minWords: 5,
-        maxWords: 50,
+        minWords: 10,
+        maxWords: 40,
     },
 ];
 export default preTestQuestions;
