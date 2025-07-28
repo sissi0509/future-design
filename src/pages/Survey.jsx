@@ -1,13 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import Questionnaire from '../components/questions/QuestionNaire';
+import surveyQuestions from '../data/questions/survey';
 
-export default function Consetn() {
-    const navigate = useNavigate();
+export default function PreTest({ onComplete }) {
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Survey</h1>
-            <button className="btn btn-neutral-content" >
-                Submit
-            </button>
-        </div>
+        <Questionnaire
+            questions={surveyQuestions}
+            label="Survey"
+            collectionType="surVey"
+            userField="surveyCompleted"
+            onComplete={onComplete}
+        />
     );
 }

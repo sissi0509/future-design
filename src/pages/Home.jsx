@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
 import Consent from './Consent';
 import PreTest from './PreTest';
@@ -8,13 +8,19 @@ import Survey from './Survey';
 
 export default function Home() {
     const { userProfile } = useAuth();
-    const [localProgress, setLocalProgress] = useState({
-        consent: userProfile?.consentCompleted,
-        preTest: userProfile?.preTestCompleted,
-        training: userProfile?.trainingCompleted,
-        postTest: userProfile?.postTestCompleted,
-        survey: userProfile?.surveyCompleted,
-    });
+    const [localProgress, setLocalProgress] = useState(null);
+
+    useEffect(() => {
+        if (userProfile) {
+            setLocalProgress({
+                consent: userProfile.consentCompleted,
+                preTest: userProfile.preTestCompleted,
+                training: userProfile.trainingCompleted,
+                postTest: userProfile.postTestCompleted,
+                survey: userProfile.surveyCompleted,
+            });
+        }
+    }, [userProfile]);
 
     const markComplete = (stage) => {
         setLocalProgress((prev) => ({
@@ -22,6 +28,10 @@ export default function Home() {
             [stage]: true,
         }));
     };
+
+    if (!localProgress) {
+        return <div className="p-4">Loading...</div>;
+    }
 
     if (!localProgress.consent) {
         return <Consent onComplete={() => markComplete('consent')} />;
@@ -34,6 +44,6 @@ export default function Home() {
     } else if (!localProgress.survey) {
         return <Survey onComplete={() => markComplete('survey')} />;
     } else {
-        return <div className="p-4">✅ You have completed the entire experience. Thank you!</div>;
+        return <div className="p-4">You have completed all!</div>;
     }
 }
