@@ -6,7 +6,7 @@ export default function PreTest({ onComplete }) {
         <Questionnaire
             questions={surveyQuestions}
             label="Survey"
-            collectionType="surVey"
+            collectionType="survey"
             userField="surveyCompleted"
             onComplete={onComplete}
         />

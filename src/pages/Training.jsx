@@ -6,6 +6,7 @@ import { logClientError } from '../services/errorHandle/logClientError';
 import TextQuestion from '../components/questions/TextQuestion';
 import MultipleChoice from '../components/questions/MultipleChoice'
 import trainingQuestions from '../data/questions/training';
+import { AiHint } from '../services/aiApi/Gemini';
 
 export default function Training({ onComplete }) {
     const { currentUser } = useAuth();
@@ -15,6 +16,9 @@ export default function Training({ onComplete }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [allValid, setAllValid] = useState(false);
+    const [hint, setHint] = useState('');
+
 
     const current = trainingQuestions[step];
 
@@ -22,29 +26,64 @@ export default function Training({ onComplete }) {
         return text ? text.trim().split(/\s+/).length : 0;
     }
 
-    const isValidStep = (q) => {
-        const value = answers[q.key];
-        if (q.type === 'text') {
-            const count = wordCount(value);
-            return count >= q.minWords && count <= q.maxWords;
+    const handleAiHint = async () => {
+        if (current.type !== 'text') {
+            setError('AI hints are only available for text questions.');
+            return;
         }
-        if (q.type === 'multiple') {
-            return !!value;
+        const response = answers[current.key] || '';
+        if (!response) {
+            setError('Please provide an answer before requesting a hint.');
+            return;
         }
-        return false;
+        setHint('loading...');
+        try {
+            const generatedHint = await AiHint(current.label, response);
+            if (!generatedHint) {
+                setError('Failed to get AI hint. Please try again later.');
+                return;
+            }
+            setHint(generatedHint);
+            setError('');
+        } catch (err) {
+            console.error('AI hint error:', err);
+            await logClientError({
+                error: err,
+                source: 'training',
+                reason: 'Failed to get AI hint'
+            });
+            setError('Failed to get AI hint. Please try again later.');
+        }
     };
 
     const handleChange = (key, value) => {
-        setAnswers((prev) => ({ ...prev, [key]: value }));
+        setAnswers((prev) => {
+            const updated = { ...prev, [key]: value };
+
+            const isValidStepWithOverride = (q) => {
+                const v = updated[q.key];
+                if (q.type === 'text') {
+                    const count = wordCount(v);
+                    return count >= q.minWords && count <= q.maxWords;
+                }
+                if (q.type === 'multiple') {
+                    return !!v;
+                }
+                return false;
+            };
+
+            const allNowValid = trainingQuestions.every(isValidStepWithOverride);
+            setAllValid(allNowValid);
+
+            return updated;
+        });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
-        const allValid = trainingQuestions.every(isValidStep);
         if (!allValid) {
-            setError('Please complete all questions before submitting.');
             return;
         }
 
@@ -52,7 +91,7 @@ export default function Training({ onComplete }) {
             setLoading(true);
 
             await addDoc(collection(db, 'users', currentUser.uid, 'responses'), {
-                type: 'prostTest',
+                type: 'training',
                 ...answers,
             });
 
@@ -63,11 +102,11 @@ export default function Training({ onComplete }) {
             setSubmitted(true);
             if (onComplete) onComplete();
         } catch (err) {
-            console.error('training error:', err);
+            console.error(`training error:`, err);
             await logClientError({
                 error: err,
                 source: 'training',
-                reason: 'Failed to save training'
+                reason: `Failed to save training`
             });
             setError('Something went wrong. Please try again.');
         } finally {
@@ -82,13 +121,20 @@ export default function Training({ onComplete }) {
             {!submitted && (
                 <>
                     {current.type === 'text' && (
-                        <TextQuestion
-                            label={current.label}
-                            value={answers[current.key] || ''}
-                            onChange={(val) => handleChange(current.key, val)}
-                            minWords={current.minWords}
-                            maxWords={current.maxWords}
-                        />
+                        <>
+                            <TextQuestion
+                                label={current.label}
+                                value={answers[current.key] || ''}
+                                onChange={(val) => handleChange(current.key, val)}
+                                minWords={current.minWords}
+                                maxWords={current.maxWords}
+                            />
+                            {hint && (
+                                <div className="text-sm text-blue-600 mt-2 border border-blue-200 bg-blue-50 p-3 rounded">
+                                    <strong>Hint:</strong> {hint}
+                                </div>
+                            )}
+                        </>
                     )}
 
                     {current.type === 'multiple' && (
@@ -100,6 +146,7 @@ export default function Training({ onComplete }) {
                         />
                     )}
 
+                    {!allValid && <p className="text-red-500 text-sm">Please complete all to submit!</p>}
                     {error && <p className="text-red-500 text-sm">{error}</p>}
 
                     <div className="flex justify-between gap-4">
@@ -107,17 +154,26 @@ export default function Training({ onComplete }) {
                             type="button"
                             className="btn btn-secondary"
                             disabled={step === 0}
-                            onClick={() => setStep(step - 1)}
+                            onClick={() => { setStep(step - 1), setHint('') }}
                         >
                             Back
                         </button>
+
+                        {current.type === 'text' &&
+                            <button
+                                type="button"
+                                className="btn btn-info"
+                                onClick={() => handleAiHint()}
+                            >
+                                AI Hint
+                            </button>
+                        }
 
                         {step < trainingQuestions.length - 1 ? (
                             <button
                                 type="button"
                                 className="btn btn-primary"
-                                onClick={() => setStep(step + 1)}
-                            // disabled={!isValidStep(current)}
+                                onClick={() => { setStep(step + 1), setHint('') }}
                             >
                                 Next
                             </button>
@@ -125,7 +181,6 @@ export default function Training({ onComplete }) {
                             <button
                                 type="submit"
                                 className="btn btn-success"
-                            // disabled={loading || !isValidStep(current)}
                             >
                                 {loading ? 'Submitting...' : 'Submit'}
                             </button>
