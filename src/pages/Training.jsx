@@ -90,12 +90,12 @@ export default function Training({ onComplete }) {
         try {
             setLoading(true);
 
-            await addDoc(collection(db, 'users', currentUser.uid, 'responses'), {
+            await addDoc(collection(db, 'sessionInfo', currentUser.uid, 'responses'), {
                 type: 'training',
                 ...answers,
             });
 
-            await updateDoc(doc(db, 'users', currentUser.uid), {
+            await updateDoc(doc(db, 'sessionInfo', currentUser.uid), {
                 trainingCompleted: true
             });
 

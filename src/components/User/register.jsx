@@ -24,7 +24,7 @@ export default function Register({ onClose }) {
         try {
             const result = await createUserWithEmailAndPassword(auth, formData.email.trim(), formData.password.trim());
             const user = result.user;
-            await setDoc(doc(db, "users", user.uid), {
+            await setDoc(doc(db, "sessionInfo", user.uid), {
                 uid: user.uid,
                 email: user.email,
                 userName: formData.userName,

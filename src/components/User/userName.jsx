@@ -12,7 +12,7 @@ const Username = ({ userId }) => {
                 return;
             }
 
-            const userInfo = await getDoc(doc(db, 'users', userId));
+            const userInfo = await getDoc(doc(db, 'sessionInfo', userId));
             if (userInfo.exists()) {
                 setUsername(userInfo.data().userName);
             } else {

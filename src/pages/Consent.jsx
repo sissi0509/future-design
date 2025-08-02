@@ -12,10 +12,7 @@ export default function Consent({ onComplete }) {
     const [typedId, setTypedId] = useState('');
     const [error, setError] = useState('');
 
-    const prolificIdFromDB = userProfile?.prolificId?.trim().toLowerCase();
-    const typedIdTrim = typedId.trim().toLowerCase();
-
-    const isFormValid = hasAgreed && typedIdTrim && typedIdTrim === prolificIdFromDB;
+    const isFormValid = hasAgreed && typedId.trim()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +21,7 @@ export default function Consent({ onComplete }) {
             return;
         }
         try {
-            const userRef = doc(db, 'users', currentUser.uid);
+            const userRef = doc(db, 'sessionInfo', currentUser.uid);
             await updateDoc(userRef, {
                 consentCompleted: true,
             });

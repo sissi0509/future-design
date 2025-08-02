@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
             if (user) {
-                const userInfo = await getDoc(doc(db, 'users', user.uid));
+                const userInfo = await getDoc(doc(db, 'sessionInfo', user.uid));
 
                 if (userInfo.exists()) {
                     setUserProfile(userInfo.data());

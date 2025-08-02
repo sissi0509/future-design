@@ -55,12 +55,12 @@ export default function Questionnaire({ questions, onComplete, label, collection
         try {
             setLoading(true);
 
-            await addDoc(collection(db, 'users', currentUser.uid, 'responses'), {
+            await addDoc(collection(db, 'sessionInfo', currentUser.uid, 'responses'), {
                 type: collectionType,
                 ...answers,
             });
 
-            await updateDoc(doc(db, 'users', currentUser.uid), {
+            await updateDoc(doc(db, 'sessionInfo', currentUser.uid), {
                 [userField]: true
             });
 

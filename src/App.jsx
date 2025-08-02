@@ -1,41 +1,59 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 
-import { useEffect } from 'react';
-import { logAutoFlush } from './services/errorHandle/logAutoFlash';
+import { auth } from './config/Firebase';
 import { useAuth } from './components/User/AuthSetUp';
+import { logAutoFlush } from './services/errorHandle/logAutoFlash';
+import { logClientError } from './services/errorHandle/logClientError';
 
 import Header from './components/Header';
-import Home from './pages/Home';
-
-
+import NewHome from './pages/NewHome';
 
 function App() {
-  const { currentUser } = useAuth();
-  useEffect(() => {
-    return logAutoFlush();
-  }, []);
+    const { currentUser } = useAuth();
+    const [authChecked, setAuthChecked] = useState(false);
 
-  return (
-    <Router>
-      <div>
-        <Header />
-        <main className="container">
+    useEffect(() => {
+        const stopFlush = logAutoFlush();
+        const unsubscribeAuthListener = onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    await logClientError({
+                        error,
+                        source: 'App.jsx',
+                        reason: 'Anonymous login failed in useEffect'
+                    });
+                }
+            }
+            setAuthChecked(true);
+        });
 
-          {currentUser ? (
-            <Routes>
-              <Route path="/" element={<Home />} />
-            </Routes>
+        return () => {
+            stopFlush()
+            unsubscribeAuthListener();
+        };
+    }, []);
 
-
-          ) : (
-            <p>Please log in to access the reviews.</p>
-          )}
-        </main>
-      </div>
-    </Router>
-
-  );
+    return (
+        <Router>
+            <div>
+                <Header />
+                <main className="container">
+                    {!authChecked || !currentUser ? (
+                        <p>Loading...</p>
+                    ) : (
+                        <Routes>
+                            <Route path="/" element={<NewHome />} />
+                        </Routes>
+                    )}
+                </main>
+            </div>
+        </Router>
+    );
 }
 
 export default App;

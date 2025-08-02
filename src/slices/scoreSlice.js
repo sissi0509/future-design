@@ -13,7 +13,7 @@ export const fetchUserScore = createAsyncThunk("score/fetchUserScore", async () 
     };
     try {
         const user = auth.currentUser;
-        const docInfo = await getDoc(doc(db, "users", user.uid));
+        const docInfo = await getDoc(doc(db, "sessionInfo", user.uid));
 
         if (docInfo.exists()) {
             return docInfo.data().score;
@@ -29,7 +29,7 @@ export const fetchUserScore = createAsyncThunk("score/fetchUserScore", async () 
 export const updateUserScore = createAsyncThunk("score/updateUserScore", async ({ level, value }) => {
     try {
         const user = auth.currentUser;
-        const userRef = doc(db, "users", user.uid);
+        const userRef = doc(db, "sessionInfo", user.uid);
 
         await updateDoc(userRef, {
             [`score.${level}`]: value
