@@ -23,8 +23,8 @@ const surveyQuestions = [
     {
         type: 'text',
         key: 's4',
-        label: '4. Any suggestions for improving this training?',
-        minWords: 5,
+        label: '4. Any suggestions for improving this training?(optional)',
+        minWords: 0,
         maxWords: 60,
     },
 ];

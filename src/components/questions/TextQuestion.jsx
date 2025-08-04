@@ -1,3 +1,6 @@
+import ReadAloudButton from '../ReadAloudButton'
+import SpeechToTextButton from '../SpeechToText';
+
 export default function TextQuestion({
     label,
     value,
@@ -8,11 +11,21 @@ export default function TextQuestion({
 }) {
     const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
     const valid = wordCount >= minWords && wordCount <= maxWords;
+    const speechText = label;
+    const handleSpeechResult = (spokenText) => {
+        const newValue = value ? value + ' ' + spokenText : spokenText;
+        onChange(newValue);
+    };
 
     return (
         <div>
             <label className="block font-medium mb-1">
                 {label}
+                <div>
+                    <ReadAloudButton text={speechText} />
+                    <SpeechToTextButton onResult={handleSpeechResult} />
+
+                </div>
 
             </label>
             <textarea

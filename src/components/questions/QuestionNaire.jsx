@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../User/AuthSetUp';
 import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import { db } from '../../config/Firebase';
@@ -11,46 +11,42 @@ export default function Questionnaire({ questions, onComplete, label, collection
 
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [allValid, setAllValid] = useState(false);
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [submitVisible, setSubmitVisible] = useState(false);
 
     const current = questions[step];
+    const isLast = step === questions.length - 1;
+
+    // Wait briefly before enabling submit button
+    useEffect(() => {
+        if (isLast) {
+            const timer = setTimeout(() => setSubmitVisible(true), 500);
+            return () => clearTimeout(timer);
+        } else {
+            setSubmitVisible(false);
+        }
+    }, [step, questions.length]);
 
     const wordCount = (text) => (text ? text.trim().split(/\s+/).length : 0);
 
-    const handleChange = (key, value) => {
-        setAnswers((prev) => {
-            const updated = { ...prev, [key]: value };
-
-            const isValidStepWithOverride = (q) => {
-                const v = updated[q.key];
-                if (q.type === 'text') {
-                    const count = wordCount(v);
-                    return count >= q.minWords && count <= q.maxWords;
-                }
-                if (q.type === 'multiple') {
-                    return !!v;
-                }
-                return false;
-            };
-
-            const allNowValid = questions.every(isValidStepWithOverride);
-            setAllValid(allNowValid);
-
-            return updated;
-        });
+    const isValid = (q, v) => {
+        if (q?.type === 'text') {
+            const count = wordCount(v);
+            return count >= q.minWords && count <= q.maxWords;
+        }
+        if (q?.type === 'multiple') {
+            return !!v;
+        }
+        return false;
     };
 
+    const handleChange = (key, value) => {
+        setAnswers((prev) => ({ ...prev, [key]: value }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
-        if (!allValid) {
-            return;
-        }
 
         try {
             setLoading(true);
@@ -61,7 +57,7 @@ export default function Questionnaire({ questions, onComplete, label, collection
             });
 
             await updateDoc(doc(db, 'sessionInfo', currentUser.uid), {
-                [userField]: true
+                [userField]: true,
             });
 
             setSubmitted(true);
@@ -71,9 +67,9 @@ export default function Questionnaire({ questions, onComplete, label, collection
             await logClientError({
                 error: err,
                 source: label,
-                reason: `Failed to save ${label}`
+                reason: `Failed to save ${label}`,
             });
-            setError('Something went wrong. Please try again.');
+            alert('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -81,11 +77,11 @@ export default function Questionnaire({ questions, onComplete, label, collection
 
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-6">
-            <h1 className="text-2xl font-bold">{label}</h1>
+            <h1 className="text-2xl font-bold">{`${label} (${questions.length} Questions)`}</h1>
 
             {!submitted && (
                 <>
-                    {current.type === 'text' && (
+                    {current?.type === 'text' && (
                         <TextQuestion
                             label={current.label}
                             value={answers[current.key] || ''}
@@ -95,7 +91,7 @@ export default function Questionnaire({ questions, onComplete, label, collection
                         />
                     )}
 
-                    {current.type === 'multiple' && (
+                    {current?.type === 'multiple' && (
                         <MultipleChoice
                             label={current.label}
                             options={current.options}
@@ -103,29 +99,32 @@ export default function Questionnaire({ questions, onComplete, label, collection
                             onChange={(val) => handleChange(current.key, val)}
                         />
                     )}
-                    {!allValid && <p className="text-red-500 text-sm">Please complete all to submit!</p>}
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
 
                     <div className="flex justify-between gap-4">
                         <button
                             type="button"
                             className="btn btn-secondary"
                             disabled={step === 0}
-                            onClick={() => setStep(step - 1)}
+                            onClick={() => setStep((prev) => prev - 1)}
                         >
                             Back
                         </button>
 
-                        {step < questions.length - 1 ? (
+                        {!isLast ? (
                             <button
                                 type="button"
                                 className="btn btn-primary"
-                                onClick={() => setStep(step + 1)}
+                                disabled={!isValid(current, answers[current.key])}
+                                onClick={() => setStep((prev) => prev + 1)}
                             >
                                 Next
                             </button>
                         ) : (
-                            <button type="submit" className="btn btn-success">
+                            <button
+                                type="submit"
+                                className="btn btn-success"
+                                disabled={!submitVisible || loading}
+                            >
                                 {loading ? 'Submitting...' : 'Submit'}
                             </button>
                         )}

@@ -8,7 +8,6 @@ import { useAuth } from './components/User/AuthSetUp';
 import { logAutoFlush } from './services/errorHandle/logAutoFlash';
 import { logClientError } from './services/errorHandle/logClientError';
 
-import Header from './components/Header';
 import NewHome from './pages/NewHome';
 
 function App() {
@@ -41,8 +40,7 @@ function App() {
     return (
         <Router>
             <div>
-                <Header />
-                <main className="container">
+                <main className="w-full">
                     {!authChecked || !currentUser ? (
                         <p>Loading...</p>
                     ) : (

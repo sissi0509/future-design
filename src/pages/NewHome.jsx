@@ -3,6 +3,7 @@ import { useAuth } from '../components/User/AuthSetUp';
 import { runTransaction, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 import { logClientError } from '../services/errorHandle/logClientError';
+import Header from '../components/Header';
 
 import Welcome from './Welcome';
 import Consent from './Consent';
@@ -98,20 +99,30 @@ export default function NewHome() {
     if (!localProgress) {
         return <div className="p-4">Loading...</div>;
     }
+    let currentStepComponent;
 
     if (!localProgress.welcomeCompleted) {
-        return <Welcome onComplete={() => markComplete('welcomeCompleted')} />;
+        currentStepComponent = <Welcome onComplete={() => markComplete('welcomeCompleted')} />;
     } else if (!localProgress.consentCompleted) {
-        return <Consent onComplete={() => markComplete('consentCompleted')} />;
+        currentStepComponent = <Consent onComplete={() => markComplete('consentCompleted')} />;
     } else if (!localProgress.preTestCompleted) {
-        return <PreTest onComplete={() => markComplete('preTestCompleted')} />;
+        currentStepComponent = <PreTest onComplete={() => markComplete('preTestCompleted')} />;
     } else if (!localProgress.trainingCompleted) {
-        return <Training onComplete={() => markComplete('trainingCompleted')} />;
+        currentStepComponent = <Training onComplete={() => markComplete('trainingCompleted')} />;
     } else if (!localProgress.postTestCompleted) {
-        return <PostTest onComplete={() => markComplete('postTestCompleted')} />;
+        currentStepComponent = <PostTest onComplete={() => markComplete('postTestCompleted')} />;
     } else if (!localProgress.surveyCompleted) {
-        return <Survey onComplete={() => markComplete('surveyCompleted')} />;
+        currentStepComponent = <Survey onComplete={() => markComplete('surveyCompleted')} />;
     } else {
-        return <QRCode />;
+        currentStepComponent = <QRCode />;
     }
+
+    // Clean JSX
+    return (
+        <>
+            <Header progress={localProgress} />
+            {currentStepComponent}
+        </>
+    );
+
 }

@@ -4,15 +4,18 @@ import { useAuth } from '../components/User/AuthSetUp';
 import { logClientError } from '../services/errorHandle/logClientError';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
+import ReadAloudButtonById from '../components/ReadAloudButton'
 
 export default function Consent({ onComplete }) {
 
-    const { currentUser, userProfile } = useAuth();
+    const { currentUser } = useAuth();
     const [hasAgreed, setHasAgreed] = useState(false);
     const [typedId, setTypedId] = useState('');
     const [error, setError] = useState('');
 
     const isFormValid = hasAgreed && typedId.trim()
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,34 +44,27 @@ export default function Consent({ onComplete }) {
 
     };
 
+    const consentText = `Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolores suscipit sapiente dolor sunt qui voluptate magni, ad blanditiis, repudiandae ducimus dolore odio reiciendis itaque beatae quaerat, 
+    laudantium necessitatibus tempore eos? Eaque non repudiandae illo tenetur quisquam ipsa culpa iure quaerat aspernatur consectetur dolores ab explicabo fuga, excepturi aliquam quas, omnis expedita a saepe.Porro repellat corporis nihil voluptatibus libero praesentium,
+Dolorum eaque ducimus eligendi aperiam illo delectus minus dolor quidem amet deleniti, culpa error sapiente quibusdam velit molestiae saepe rem possimus sed eum accusamus.Commodi porro minima ipsam optio inventore ?,
+        Repellendus illo esse odit dicta, laboriosam veritatis.Eius, hic ipsa omnis deleniti eum libero reprehenderit dicta, ex ut ducimus veniam dolor ullam earum distinctio quis possimus recusandae inventore repellendus voluptatibus!,
+            Ipsa ut neque magni saepe animi tempora quidem.Ea, eaque eligendi quae odio voluptas, natus iure incidunt molestias autem, perferendis voluptatem facere neque! Quas nulla obcaecati molestiae mollitia earum sapiente.,
+            Porro eligendi suscipit perspiciatis eaque illo praesentium ducimus iste fugiat quod nobis facilis, officia culpa dolorum quasi sint ipsam perferendis nam veritatis possimus mollitia, nisi non quidem nemo illum ? Deleniti.,
+            Ipsa cupiditate distinctio dicta, aperiam odit sapiente quaerat sed ex numquam! Ut reiciendis voluptas eius fuga, tempore, alias adipisci temporibus doloribus est veniam eligendi dolor error illo et maxime.Earum.,
+            Molestias dolor est vitae eos.At molestias magni est a, eos aperiam eius temporibus aliquam.Explicabo quidem corrupti quasi nisi at.Quas debitis mollitia aspernatur fugiat ad eveniet consectetur quos ?,
+        Magni molestias quidem nostrum maxime odit similique quo placeat, dolorum totam vero iure at, quasi quae.Dolor magni quis voluptates iusto natus odit! Quisquam numquam nam natus fugit dolorum ea ?,
+            Corporis, debitis.Accusantium adipisci provident ullam, molestiae incidunt magnam iure cumque debitis ab similique sunt quasi consequatur voluptas delectus optio quos earum assumenda consectetur alias fugiat ipsam possimus aliquam libero.`;
+
     return (
         <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">Consent Form</h1>
 
             <div className="mb-6 border rounded p-4 bg-gray-50 max-h-[500px] overflow-y-auto">
-                <p className="text-sm">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat eius, molestias odit quas numquam hic magnam ipsam ratione iste non ex! Excepturi reprehenderit totam harum? Accusantium neque officiis officia odio?
-                    Odit optio reprehenderit et aspernatur pariatur dolores assumenda sunt, beatae accusantium eum quo nam. Vero atque nihil rerum hic quod. Consequuntur quibusdam molestiae nostrum aut libero a quia commodi. Est.
-                    Laboriosam in quisquam mollitia quaerat recusandae, nesciunt consequuntur doloribus fugit similique quos, ea, reprehenderit ab officiis eligendi! Perspiciatis quaerat assumenda, eveniet itaque quod sapiente culpa aliquid consectetur asperiores placeat? Distinctio?
-                    Nihil quasi aut enim veritatis voluptatibus similique? Sit, exercitationem qui beatae fugiat architecto quidem voluptates dignissimos. Culpa accusantium, nostrum inventore magnam, necessitatibus ut molestiae, ipsa hic ipsam dolorum quo harum.
-                    Consequuntur suscipit modi perferendis eos obcaecati nihil ex blanditiis sed numquam ad at incidunt nemo accusantium repellendus atque soluta deserunt, distinctio corrupti libero dolorem repellat placeat possimus quam hic! Dolor?
-                    Dolor dolorum provident quas incidunt officiis voluptas ipsa inventore omnis quasi, assumenda sapiente soluta! Corporis numquam, fuga explicabo molestiae nihil perspiciatis at distinctio illo assumenda velit dolore. Magni, aliquid animi?
-                    Ratione sapiente dolor earum excepturi recusandae id? Maxime distinctio et praesentium! Nulla vel nemo, aperiam delectus deserunt voluptates facere necessitatibus voluptas aliquid iure mollitia sed itaque repudiandae non dolores blanditiis.
-                    Amet nemo voluptas nam obcaecati enim sapiente aperiam impedit excepturi? Maxime fuga blanditiis illo id cum inventore et veniam aliquam delectus iure maiores magnam consequuntur voluptatem, quaerat fugiat reiciendis porro.
-                    Laudantium fugit, consequatur, earum a recusandae error magni consequuntur culpa illum assumenda minima veritatis cupiditate, deleniti voluptatem. Est aspernatur sed et iste libero, error reprehenderit quo consequatur, laborum nihil voluptatibus!
-                    Eum, in reprehenderit nostrum similique, libero cum vitae eligendi officia laboriosam quibusdam quo aut eos, officiis error accusantium debitis? Ducimus velit magnam officiis nisi labore. Asperiores architecto magni beatae excepturi?
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat eius, molestias odit quas numquam hic magnam ipsam ratione iste non ex! Excepturi reprehenderit totam harum? Accusantium neque officiis officia odio?
-                    Odit optio reprehenderit et aspernatur pariatur dolores assumenda sunt, beatae accusantium eum quo nam. Vero atque nihil rerum hic quod. Consequuntur quibusdam molestiae nostrum aut libero a quia commodi. Est.
-                    Laboriosam in quisquam mollitia quaerat recusandae, nesciunt consequuntur doloribus fugit similique quos, ea, reprehenderit ab officiis eligendi! Perspiciatis quaerat assumenda, eveniet itaque quod sapiente culpa aliquid consectetur asperiores placeat? Distinctio?
-                    Nihil quasi aut enim veritatis voluptatibus similique? Sit, exercitationem qui beatae fugiat architecto quidem voluptates dignissimos. Culpa accusantium, nostrum inventore magnam, necessitatibus ut molestiae, ipsa hic ipsam dolorum quo harum.
-                    Consequuntur suscipit modi perferendis eos obcaecati nihil ex blanditiis sed numquam ad at incidunt nemo accusantium repellendus atque soluta deserunt, distinctio corrupti libero dolorem repellat placeat possimus quam hic! Dolor?
-                    Dolor dolorum provident quas incidunt officiis voluptas ipsa inventore omnis quasi, assumenda sapiente soluta! Corporis numquam, fuga explicabo molestiae nihil perspiciatis at distinctio illo assumenda velit dolore. Magni, aliquid animi?
-                    Ratione sapiente dolor earum excepturi recusandae id? Maxime distinctio et praesentium! Nulla vel nemo, aperiam delectus deserunt voluptates facere necessitatibus voluptas aliquid iure mollitia sed itaque repudiandae non dolores blanditiis.
-                    Amet nemo voluptas nam obcaecati enim sapiente aperiam impedit excepturi? Maxime fuga blanditiis illo id cum inventore et veniam aliquam delectus iure maiores magnam consequuntur voluptatem, quaerat fugiat reiciendis porro.
-                    Laudantium fugit, consequatur, earum a recusandae error magni consequuntur culpa illum assumenda minima veritatis cupiditate, deleniti voluptatem. Est aspernatur sed et iste libero, error reprehenderit quo consequatur, laborum nihil voluptatibus!
-                    Eum, in reprehenderit nostrum similique, libero cum vitae eligendi officia laboriosam quibusdam quo aut eos, officiis error accusantium debitis? Ducimus velit magnam officiis nisi labore. Asperiores architecto magni beatae excepturi?
-                </p>
+                <ReadAloudButtonById text={consentText} />
+
+                <p className="text-sm">{consentText}</p>
             </div>
+
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

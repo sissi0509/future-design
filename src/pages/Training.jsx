@@ -16,7 +16,6 @@ export default function Training({ onComplete }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const [allValid, setAllValid] = useState(false);
     const [hint, setHint] = useState('');
 
 
@@ -25,6 +24,18 @@ export default function Training({ onComplete }) {
     const wordCount = (text) => {
         return text ? text.trim().split(/\s+/).length : 0;
     }
+
+    const isValid = (q, v) => {
+        if (q.type === 'text') {
+            const count = wordCount(v);
+            return count >= q.minWords && count <= q.maxWords;
+        }
+        if (q.type === 'multiple') {
+            return !!v;
+        }
+        return false;
+    };
+
 
     const handleAiHint = async () => {
         if (current.type !== 'text') {
@@ -57,33 +68,17 @@ export default function Training({ onComplete }) {
     };
 
     const handleChange = (key, value) => {
-        setAnswers((prev) => {
-            const updated = { ...prev, [key]: value };
-
-            const isValidStepWithOverride = (q) => {
-                const v = updated[q.key];
-                if (q.type === 'text') {
-                    const count = wordCount(v);
-                    return count >= q.minWords && count <= q.maxWords;
-                }
-                if (q.type === 'multiple') {
-                    return !!v;
-                }
-                return false;
-            };
-
-            const allNowValid = trainingQuestions.every(isValidStepWithOverride);
-            setAllValid(allNowValid);
-
-            return updated;
-        });
+        setAnswers((prev) => ({ ...prev, [key]: value }));
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
 
-        if (!allValid) {
+
+        const lastQuestion = trainingQuestions[trainingQuestions.length - 1];
+        if (!isValid(lastQuestion, answers[lastQuestion.key])) {
+            alert('Please complete the last question before submitting!');
             return;
         }
 
@@ -146,7 +141,6 @@ export default function Training({ onComplete }) {
                         />
                     )}
 
-                    {!allValid && <p className="text-red-500 text-sm">Please complete all to submit!</p>}
                     {error && <p className="text-red-500 text-sm">{error}</p>}
 
                     <div className="flex justify-between gap-4">
@@ -174,6 +168,7 @@ export default function Training({ onComplete }) {
                                 type="button"
                                 className="btn btn-primary"
                                 onClick={() => { setStep(step + 1), setHint('') }}
+                                disabled={!isValid(current, answers[current.key])}
                             >
                                 Next
                             </button>
@@ -181,6 +176,7 @@ export default function Training({ onComplete }) {
                             <button
                                 type="submit"
                                 className="btn btn-success"
+                                disabled={!isValid(current, answers[current.key]) || loading}
                             >
                                 {loading ? 'Submitting...' : 'Submit'}
                             </button>

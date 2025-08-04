@@ -1,9 +1,13 @@
-export default function MultipleChoiceQuestion({ label, options, value, onChange, required }) {
+import ReadAloudButton from '../ReadAloudButton'
+
+export default function MultipleChoiceQuestion({ label, options, value, onChange }) {
+
+    const speechText = `${label}. Options are: ${options.join(', ')}`
     return (
         <div>
             <label className="block font-medium mb-2">
                 {label}
-                {required && <span className="text-red-500 ml-1">*</span>}
+                <ReadAloudButton text={speechText} />
             </label>
             <div className="space-y-2">
                 {options.map((opt) => (
