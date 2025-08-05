@@ -8,7 +8,7 @@ import { useAuth } from './components/User/AuthSetUp';
 import { logAutoFlush } from './services/errorHandle/logAutoFlash';
 import { logClientError } from './services/errorHandle/logClientError';
 
-import NewHome from './pages/NewHome';
+import Home from './pages/Home';
 
 function App() {
     const { currentUser } = useAuth();
@@ -45,7 +45,7 @@ function App() {
                         <p>Loading...</p>
                     ) : (
                         <Routes>
-                            <Route path="/" element={<NewHome />} />
+                            <Route path="/" element={<Home />} />
                         </Routes>
                     )}
                 </main>

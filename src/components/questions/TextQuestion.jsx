@@ -21,20 +21,22 @@ export default function TextQuestion({
         <div>
             <label className="block font-medium mb-1">
                 {label}
-                <div>
-                    <ReadAloudButton text={speechText} />
-                    <SpeechToTextButton onResult={handleSpeechResult} />
+                <ReadAloudButton text={speechText} />
 
-                </div>
 
             </label>
-            <textarea
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="textarea w-full"
-                rows={4}
-                placeholder={placeholder}
-            />
+            <div className="relative w-full">
+                <textarea
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="textarea w-full"
+                    rows={4}
+                    placeholder={placeholder}
+                />
+                <div className="absolute right-2 bottom-2">
+                    <SpeechToTextButton onResult={handleSpeechResult} />
+                </div>
+            </div>
             <div className={`text-sm mt-1 ${valid ? 'text-green-600' : 'text-red-500'
                 }`}>
                 Word count: {wordCount}

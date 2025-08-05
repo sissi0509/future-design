@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
 import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
@@ -17,9 +17,31 @@ export default function Training({ onComplete }) {
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [hint, setHint] = useState('');
+    const [initialized, setInitialized] = useState(false);
 
+    const storageKey = `trainingAnswer`;
 
     const current = trainingQuestions[step];
+
+    useEffect(() => {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            try {
+                const { step: savedStep, answers: savedAnswers } = JSON.parse(saved);
+                if (typeof savedStep === 'number' && savedStep < trainingQuestions.length) setStep(savedStep);
+                if (savedAnswers) setAnswers(savedAnswers);
+            } catch (e) {
+                console.warn('Failed to load local data:', e);
+            }
+        }
+        setInitialized(true);
+    }, []);
+
+    useEffect(() => {
+        if (!initialized) return;
+        localStorage.setItem(storageKey, JSON.stringify({ step, answers }));
+    }, [step, answers, initialized]);
+
 
     const wordCount = (text) => {
         return text ? text.trim().split(/\s+/).length : 0;

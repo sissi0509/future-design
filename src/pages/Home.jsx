@@ -1,49 +1,128 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
+import { runTransaction, doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../config/Firebase';
+import { logClientError } from '../services/errorHandle/logClientError';
+import Header from '../components/Header';
+
+import Welcome from './Welcome';
 import Consent from './Consent';
 import PreTest from './PreTest';
 import Training from './Training';
 import PostTest from './PostTest';
 import Survey from './Survey';
+import QRCode from './QRCode'
 
 export default function Home() {
-    const { userProfile } = useAuth();
+    const { currentUser } = useAuth();
     const [localProgress, setLocalProgress] = useState(null);
 
     useEffect(() => {
-        if (userProfile) {
-            setLocalProgress({
-                consent: userProfile.consentCompleted,
-                preTest: userProfile.preTestCompleted,
-                training: userProfile.trainingCompleted,
-                postTest: userProfile.postTestCompleted,
-                survey: userProfile.surveyCompleted,
+        const loadOrCreateProgress = async () => {
+            if (!currentUser) return;
+
+            const docRef = doc(db, "sessionInfo", currentUser.uid);
+            const snapshot = await getDoc(docRef);
+
+            if (snapshot.exists()) {
+                setLocalProgress(snapshot.data());
+            } else {
+                const defaultProgress = {
+                    uid: currentUser.uid,
+                    welcomeCompleted: false,
+                    consentCompleted: false,
+                    preTestCompleted: false,
+                    trainingCompleted: false,
+                    postTestCompleted: false,
+                    surveyCompleted: false,
+                    groupNumber: null
+                };
+                await setDoc(docRef, defaultProgress);
+                setLocalProgress(defaultProgress);
+            }
+        };
+
+        loadOrCreateProgress();
+    }, [currentUser]);
+
+
+
+    const assignGroupNumber = async () => {
+        const countsRef = doc(db, 'megaData', 'groupCounts');
+
+        const chosenGroup = await runTransaction(db, async (transaction) => {
+            const snapshot = await transaction.get(countsRef);
+            if (!snapshot.exists()) throw new Error("groupCounts doc not found");
+
+            const counts = snapshot.data();
+
+            const minCount = Math.min(...Object.values(counts));
+            const candidates = Object.keys(counts).filter(
+                (k) => counts[k] === minCount
+            );
+
+            const selected = candidates[Math.floor(Math.random() * candidates.length)];
+            transaction.update(countsRef, {
+                [selected]: counts[selected] + 1
+            });
+
+            return parseInt(selected);
+        });
+
+        return chosenGroup;
+    };
+
+    const markComplete = async (stage) => {
+        if (!currentUser) return;
+
+        try {
+            const docRef = doc(db, "sessionInfo", currentUser.uid);
+            const updated = { ...localProgress, [stage]: true };
+
+            if (stage === 'consentCompleted' && localProgress.groupNumber == null) {
+                const groupNum = await assignGroupNumber();
+                updated.groupNumber = groupNum;
+            }
+
+            setLocalProgress(updated);
+            await setDoc(docRef, updated);
+        } catch (error) {
+            await logClientError({
+                error,
+                source: 'NewHome.jsx → markComplete',
+                reason: `Error updating stage "${stage}" for user`
             });
         }
-    }, [userProfile]);
-
-    const markComplete = (stage) => {
-        setLocalProgress((prev) => ({
-            ...prev,
-            [stage]: true,
-        }));
     };
+
 
     if (!localProgress) {
         return <div className="p-4">Loading...</div>;
     }
+    let currentStepComponent;
 
-    if (!localProgress.consent) {
-        return <Consent onComplete={() => markComplete('consent')} />;
-    } else if (!localProgress.preTest) {
-        return <PreTest onComplete={() => markComplete('preTest')} />;
-    } else if (!localProgress.training) {
-        return <Training onComplete={() => markComplete('training')} />;
-    } else if (!localProgress.postTest) {
-        return <PostTest onComplete={() => markComplete('postTest')} />;
-    } else if (!localProgress.survey) {
-        return <Survey onComplete={() => markComplete('survey')} />;
+    if (!localProgress.welcomeCompleted) {
+        currentStepComponent = <Welcome onComplete={() => markComplete('welcomeCompleted')} />;
+    } else if (!localProgress.consentCompleted) {
+        currentStepComponent = <Consent onComplete={() => markComplete('consentCompleted')} />;
+    } else if (!localProgress.preTestCompleted) {
+        currentStepComponent = <PreTest onComplete={() => markComplete('preTestCompleted')} />;
+    } else if (!localProgress.trainingCompleted) {
+        currentStepComponent = <Training onComplete={() => markComplete('trainingCompleted')} />;
+    } else if (!localProgress.postTestCompleted) {
+        currentStepComponent = <PostTest onComplete={() => markComplete('postTestCompleted')} />;
+    } else if (!localProgress.surveyCompleted) {
+        currentStepComponent = <Survey onComplete={() => markComplete('surveyCompleted')} />;
     } else {
-        return <div className="p-4">You have completed all!</div>;
+        currentStepComponent = <QRCode />;
     }
+
+    // Clean JSX
+    return (
+        <>
+            <Header progress={localProgress} />
+            {currentStepComponent}
+        </>
+    );
+
 }

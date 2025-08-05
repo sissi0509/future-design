@@ -14,11 +14,35 @@ export default function Questionnaire({ questions, onComplete, label, collection
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [submitVisible, setSubmitVisible] = useState(false);
+    const [initialized, setInitialized] = useState(false); // NEW
 
     const current = questions[step];
     const isLast = step === questions.length - 1;
 
-    // Wait briefly before enabling submit button
+    const storageKey = `questionnaire-${collectionType}`;
+
+    // Load from localStorage once
+    useEffect(() => {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            try {
+                const { step: savedStep, answers: savedAnswers } = JSON.parse(saved);
+                if (typeof savedStep === 'number' && savedStep < questions.length) setStep(savedStep);
+                if (savedAnswers) setAnswers(savedAnswers);
+            } catch (e) {
+                console.warn('Failed to load local data:', e);
+            }
+        }
+        setInitialized(true); // Only allow render after this
+    }, []);
+
+    // Save to localStorage on step or answer change
+    useEffect(() => {
+        if (!initialized) return;
+        localStorage.setItem(storageKey, JSON.stringify({ step, answers }));
+    }, [step, answers, initialized]);
+
+    // Control submit button appearance
     useEffect(() => {
         if (isLast) {
             const timer = setTimeout(() => setSubmitVisible(true), 500);
@@ -60,6 +84,7 @@ export default function Questionnaire({ questions, onComplete, label, collection
                 [userField]: true,
             });
 
+            localStorage.removeItem(storageKey); // ✅ Clear saved answers
             setSubmitted(true);
             if (onComplete) onComplete();
         } catch (err) {
@@ -74,6 +99,8 @@ export default function Questionnaire({ questions, onComplete, label, collection
             setLoading(false);
         }
     };
+
+    if (!initialized) return null; // ⏳ Wait to load from localStorage
 
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-6">
