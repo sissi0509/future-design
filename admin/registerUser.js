@@ -2,7 +2,6 @@ const admin = require("firebase-admin");
 const users = require("./users.json");
 const serviceAccount = require("./serviceAccountKey.json");
 
-// Initialize Firebase Admin
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
@@ -10,16 +9,34 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function createUserAndSession(userData) {
+    let userRecord;
+
     try {
-        // 1. Create Auth user
-        const userRecord = await admin.auth().createUser({
+        // Try to create the user
+        userRecord = await admin.auth().createUser({
             email: userData.email,
             password: userData.password,
         });
 
-        console.log(`✅ Created user: ${userData.email}`);
+        console.log(`✅ Created new user: ${userData.email}`);
+    } catch (err) {
+        if (err.code === "auth/email-already-exists") {
+            console.log(`ℹ️ User already exists: ${userData.email}`);
 
-        // 2. Create Firestore sessionInfo doc
+            //  Fetch existing user
+            userRecord = await admin.auth().getUserByEmail(userData.email);
+        } else {
+            console.error(`❌ Failed to create user ${userData.email}:`, err.message);
+            return; // Skip to next user
+        }
+    }
+
+    //  Check if sessionInfo doc exists
+    const sessionRef = db.collection("sessionInfo").doc(userRecord.uid);
+    const sessionSnap = await sessionRef.get();
+
+    if (!sessionSnap.exists) {
+        // Create sessionInfo only if missing
         const sessionDoc = {
             uid: userRecord.uid,
             groupNumber: userData.groupNumber,
@@ -30,10 +47,10 @@ async function createUserAndSession(userData) {
             surveyCompleted: false
         };
 
-        await db.collection("sessionInfo").doc(userRecord.uid).set(sessionDoc);
-        console.log(` sessionInfo created for ${userData.email}`);
-    } catch (err) {
-        console.error(` Failed to create ${userData.email}:`, err.message);
+        await sessionRef.set(sessionDoc);
+        console.log(`📄 sessionInfo created for ${userData.email}`);
+    } else {
+        console.log(`✅ sessionInfo already exists for ${userData.email}, skipping creation.`);
     }
 }
 
@@ -42,7 +59,7 @@ async function run() {
         await createUserAndSession(user);
     }
 
-    console.log("All users processed!");
+    console.log("🎉 All users processed!");
 }
 
 run();
