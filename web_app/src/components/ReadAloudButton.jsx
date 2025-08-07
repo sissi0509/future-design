@@ -46,7 +46,7 @@ export default function ReadAloudButton({ text, className = '' }) {
             type='button'
             className={`btn btn-xs btn-outline ml-2 ${className}`}
         >
-            {isSpeaking ? '⏹️ Stop' : 'Read'}
+            {isSpeaking ? '⏹️ Stop' : '📖 Read'}
         </button>
     );
 }

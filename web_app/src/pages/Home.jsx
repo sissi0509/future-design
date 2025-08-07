@@ -18,33 +18,59 @@ export default function Home() {
     const { currentUser } = useAuth();
     const [localProgress, setLocalProgress] = useState(null);
 
+    const loadProgress = async () => {
+        if (!currentUser) return;
+
+        const docRef = doc(db, "sessionInfo", currentUser.uid);
+        const snapshot = await getDoc(docRef);
+
+        if (snapshot.exists()) {
+            setLocalProgress(snapshot.data());
+        } else {
+            setLocalProgress(null);
+            await logClientError({
+                error,
+                source: 'login',
+                reason: 'no user info found in sessionInfo'
+            });
+        }
+    };
+
     useEffect(() => {
-        const loadOrCreateProgress = async () => {
-            if (!currentUser) return;
-
-            const docRef = doc(db, "sessionInfo", currentUser.uid);
-            const snapshot = await getDoc(docRef);
-
-            if (snapshot.exists()) {
-                setLocalProgress(snapshot.data());
-            } else {
-                const defaultProgress = {
-                    uid: currentUser.uid,
-                    welcomeCompleted: false,
-                    consentCompleted: false,
-                    preTestCompleted: false,
-                    trainingCompleted: false,
-                    postTestCompleted: false,
-                    surveyCompleted: false,
-                    groupNumber: null
-                };
-                await setDoc(docRef, defaultProgress);
-                setLocalProgress(defaultProgress);
-            }
-        };
-
-        loadOrCreateProgress();
+        if (currentUser) {
+            loadProgress();
+        }
     }, [currentUser]);
+
+
+    // // previous version: login to create session file
+    // useEffect(() => {
+    //     const loadOrCreateProgress = async () => {
+    //         if (!currentUser) return;
+
+    //         const docRef = doc(db, "sessionInfo", currentUser.uid);
+    //         const snapshot = await getDoc(docRef);
+
+    //         if (snapshot.exists()) {
+    //             setLocalProgress(snapshot.data());
+    //         } else {
+    //             const defaultProgress = {
+    //                 uid: currentUser.uid,
+    //                 welcomeCompleted: false,
+    //                 consentCompleted: false,
+    //                 preTestCompleted: false,
+    //                 trainingCompleted: false,
+    //                 postTestCompleted: false,
+    //                 surveyCompleted: false,
+    //                 groupNumber: null
+    //             };
+    //             await setDoc(docRef, defaultProgress);
+    //             setLocalProgress(defaultProgress);
+    //         }
+    //     };
+
+    //     loadOrCreateProgress();
+    // }, [currentUser]);
 
 
     // // assignGroupNumber function
@@ -106,7 +132,6 @@ export default function Home() {
     }
 
 
-
     if (!localProgress) {
         return <div className="p-4">Loading...</div>;
     }
@@ -114,8 +139,8 @@ export default function Home() {
 
     if (!localProgress.welcomeCompleted) {
         currentStepComponent = <Welcome onComplete={() => markComplete('welcomeCompleted')} />;
-    } else if (!localProgress.consentCompleted) {
-        currentStepComponent = <Consent onComplete={() => markComplete('consentCompleted')} />;
+        // } else if (!localProgress.consentCompleted) {
+        //     currentStepComponent = <Consent onComplete={() => markComplete('consentCompleted')} />;
     } else if (!localProgress.preTestCompleted) {
         currentStepComponent = <PreTest onComplete={() => markComplete('preTestCompleted')} />;
     } else if (!localProgress.trainingCompleted) {

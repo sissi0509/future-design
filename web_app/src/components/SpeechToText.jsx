@@ -44,6 +44,7 @@ export default function SpeechToTextButton({ onResult, className = '' }) {
     return (
         <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleClick}
             className={`btn btn-xs btn-outline ml-2 ${className}`}
         >
