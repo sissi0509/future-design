@@ -14,8 +14,8 @@ export default function Auth() {
             {!currentUser ? (
                 <>
                     <button className="btn" onClick={() => setActiveForm('EmailLogin')}>Email Login</button>
-                    <button className="btn" onClick={() => setActiveForm('IDlogin')}>IDLogin</button>
-                    <button className="btn" onClick={() => setActiveForm('register')}>Register</button>
+                    {/* <button className="btn" onClick={() => setActiveForm('IDlogin')}>IDLogin</button>
+                    <button className="btn" onClick={() => setActiveForm('register')}>Register</button> */}
                 </>
             ) : (
                 <div>
@@ -30,7 +30,7 @@ export default function Auth() {
                 </div>
             )}
 
-            {activeForm === 'IDlogin' && (
+            {/* {activeForm === 'IDlogin' && (
                 <div>
                     <IdLogin onClose={() => setActiveForm(null)} />
                 </div>
@@ -40,7 +40,7 @@ export default function Auth() {
                 <div>
                     <Register onClose={() => setActiveForm(null)} />
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

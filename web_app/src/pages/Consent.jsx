@@ -13,7 +13,7 @@ export default function Consent({ onComplete }) {
     const [typedId, setTypedId] = useState('');
     const [error, setError] = useState('');
 
-    const isFormValid = hasAgreed && typedId.trim()
+    const isFormValid = hasAgreed && typedId.trim() > 0
 
 
 

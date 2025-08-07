@@ -17,17 +17,18 @@ function App() {
     useEffect(() => {
         const stopFlush = logAutoFlush();
         const unsubscribeAuthListener = onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    await logClientError({
-                        error,
-                        source: 'App.jsx',
-                        reason: 'Anonymous login failed in useEffect'
-                    });
-                }
-            }
+            //     // for anonymous user
+            //     if (!user) {
+            //         try {
+            //             await signInAnonymously(auth);
+            //         } catch (error) {
+            //             await logClientError({
+            //                 error,
+            //                 source: 'App.jsx',
+            //                 reason: 'Anonymous login failed in useEffect'
+            //             });
+            //         }
+            //     }
             setAuthChecked(true);
         });
 
@@ -41,7 +42,7 @@ function App() {
         <Router>
             <div>
                 <main className="w-full">
-                    {!authChecked || !currentUser ? (
+                    {!authChecked ? (
                         <p>Loading...</p>
                     ) : (
                         <Routes>

@@ -14,14 +14,13 @@ export default function Questionnaire({ questions, onComplete, label, collection
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [submitVisible, setSubmitVisible] = useState(false);
-    const [initialized, setInitialized] = useState(false); // NEW
+    const [initialized, setInitialized] = useState(false); 
 
     const current = questions[step];
     const isLast = step === questions.length - 1;
 
     const storageKey = `questionnaire-${collectionType}`;
 
-    // Load from localStorage once
     useEffect(() => {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
@@ -33,10 +32,9 @@ export default function Questionnaire({ questions, onComplete, label, collection
                 console.warn('Failed to load local data:', e);
             }
         }
-        setInitialized(true); // Only allow render after this
+        setInitialized(true); 
     }, []);
 
-    // Save to localStorage on step or answer change
     useEffect(() => {
         if (!initialized) return;
         localStorage.setItem(storageKey, JSON.stringify({ step, answers }));
@@ -100,7 +98,7 @@ export default function Questionnaire({ questions, onComplete, label, collection
         }
     };
 
-    if (!initialized) return null; // ⏳ Wait to load from localStorage
+    if (!initialized) return null;
 
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 space-y-6">
