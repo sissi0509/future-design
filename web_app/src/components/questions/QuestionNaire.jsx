@@ -14,12 +14,12 @@ export default function Questionnaire({ questions, onComplete, label, collection
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [submitVisible, setSubmitVisible] = useState(false);
-    const [initialized, setInitialized] = useState(false); 
+    const [initialized, setInitialized] = useState(false);
 
     const current = questions[step];
     const isLast = step === questions.length - 1;
 
-    const storageKey = `questionnaire-${collectionType}`;
+    const storageKey = `questionnaire-${collectionType}-${currentUser?.uid}`;
 
     useEffect(() => {
         const saved = localStorage.getItem(storageKey);
@@ -32,7 +32,7 @@ export default function Questionnaire({ questions, onComplete, label, collection
                 console.warn('Failed to load local data:', e);
             }
         }
-        setInitialized(true); 
+        setInitialized(true);
     }, []);
 
     useEffect(() => {

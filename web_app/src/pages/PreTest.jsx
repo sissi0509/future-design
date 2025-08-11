@@ -7,7 +7,7 @@ export default function PreTest({ onComplete }) {
             questions={preTestQuestions}
             label="Pre-Test"
             collectionType="preTest"
-            userField="preTestCompleted"
+            userField="progress.preTestCompleted"
             onComplete={onComplete}
         />
     );

@@ -12,7 +12,7 @@ export default function Header({ progress }) {
 
             <div className="navbar-center space-x-2">
                 <span className={`${baseStyle} ${progress.welcomeCompleted ? 'text-green-600' : 'text-gray-400'}`}>Welcome</span>
-                {/* <span className={`${baseStyle} ${progress.consentCompleted ? 'text-green-600' : 'text-gray-400'}`}>Consent</span> */}
+                <span className={`${baseStyle} ${progress.consentCompleted ? 'text-green-600' : 'text-gray-400'}`}>Consent</span>
                 <span className={`${baseStyle} ${progress.preTestCompleted ? 'text-green-600' : 'text-gray-400'}`}>PreTest</span>
                 <span className={`${baseStyle} ${progress.trainingCompleted ? 'text-green-600' : 'text-gray-400'}`}> Training</span >
                 <span className={`${baseStyle} ${progress.postTestCompleted ? 'text-green-600' : 'text-gray-400'}`}>PostTest</span>
