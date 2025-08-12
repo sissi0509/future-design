@@ -1,89 +1,38 @@
-import { useEffect, useState } from "react";
-import ChatBoxAI from "./ChatBoxAI";
+import stageInfo from "../../data/questions/training/stageInfo";
 import PracticeStep from "./PracticeStep";
+import EvaluationStep from "./EvaluationStep";
+import RevisionStep from "./RevisionStep";
 
 export default function StepPage({
-    step = "practice",
+    stage,             // 1..6
+    step,              // "practice" | "evaluation" | "revision" | "final"
     onBackToBoard,
-    onFinishedStep,
+    onFinishedStep,    // (whichStep, answers) => void
 }) {
-    const LS_KEY = "aiCoachCollapsed";
-    const [collapsed, setCollapsed] = useState(false);
+    const handleComplete = (answers) => {
+        onFinishedStep?.(step, answers);
+    };
 
-    useEffect(() => {
-        const saved = localStorage.getItem(LS_KEY);
-        if (saved != null) setCollapsed(saved === "1");
-    }, []);
-    useEffect(() => {
-        localStorage.setItem(LS_KEY, collapsed ? "1" : "0");
-    }, [collapsed]);
+    const info = stageInfo[stage] || { title: `Stage ${stage}` };
 
     return (
-        <div className="max-w-7xl mx-auto p-4">
-            {/* Outer frame with fixed height; adjust as you like */}
-            <div className="border rounded-xl overflow-hidden h-[80vh]">
-                {/* Two-column layout */}
-                <div className="relative flex h-full">
-                    {/* LEFT: Practice content */}
-                    <div className="flex-1 min-w-0 flex flex-col">
-                        {/* Top bar */}
-                        <div className="px-4 py-3 border-b bg-base-100 flex items-center justify-between">
-                            <div className="font-medium">Practice</div>
-                            <button
-                                className="btn btn-sm btn-outline"
-                                onClick={() => setCollapsed(c => !c)}
-                                title={collapsed ? "Show AI Coach" : "Hide AI Coach"}
-                            >
-                                {collapsed ? "Show Coach" : "Hide Coach"}
-                            </button>
-                        </div>
-
-                        {/* Scrollable practice area */}
-                        <div className="p-4 flex-1 overflow-auto">
-                            {step === "practice" && (
-                                <PracticeStep
-                                    onBack={onBackToBoard}
-                                    onComplete={(answers) =>
-                                        onFinishedStep?.("practice", answers)
-                                    }
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* RIGHT: Collapsible AI Coach */}
-                    <div
-                        className={[
-                            "bg-base-200 border-l transition-[width] duration-200 ease-in-out h-full relative",
-                            collapsed ? "w-0" : "w-96",
-                            collapsed ? "border-l-0" : "border-l",
-                        ].join(" ")}
-                        aria-hidden={collapsed}
-                    >
-                        {/* Keep content mounted; fade/pointer-events for smooth collapse */}
-                        <div
-                            className={[
-                                "absolute inset-0 flex flex-col transition-opacity duration-150",
-                                collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
-                            ].join(" ")}
-                        >
-                            {/* Make AI area scroll independently */}
-                            <div className="flex-1 overflow-auto">
-                                <ChatBoxAI title="AI Coach" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Optional small handle near the divider (mobile-friendly) */}
-                    {/* <button
-            className="btn btn-xs btn-ghost absolute top-2 right-2 z-10"
-            onClick={() => setCollapsed(c => !c)}
-            aria-label={collapsed ? "Open coach" : "Close coach"}
-          >
-            {collapsed ? "⟨⟨" : "⟩⟩"}
-          </button> */}
-                </div>
+        <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
+            {/* title only */}
+            <div className="mb-6 flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-semibold">{info.title}</h2>
+                <button
+                    type="button"
+                    onClick={onBackToBoard}
+                    className="px-4 py-2 rounded-xl border hover:bg-gray-50 shrink-0"
+                >
+                    Back to Level Board
+                </button>
             </div>
+
+            {/* Body */}
+            {step === "practice" && <PracticeStep stage={stage} onComplete={handleComplete} />}
+            {step === "evaluation" && <EvaluationStep stage={stage} onComplete={handleComplete} />}
+            {step === "revision" && <RevisionStep stage={stage} onComplete={handleComplete} />}
         </div>
     );
 }

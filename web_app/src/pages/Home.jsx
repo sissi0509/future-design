@@ -28,24 +28,6 @@ export default function Home() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // const loadProgress = async () => {
-    //     if (!currentUser) return;
-
-    //     const docRef = doc(db, "sessionInfo", currentUser.uid);
-    //     const snapshot = await getDoc(docRef);
-
-    //     if (snapshot.exists()) {
-    //         setLocalProgress(snapshot.data());
-    //     } else {
-    //         setLocalProgress(null);
-    //         await logClientError({
-    //             error,
-    //             source: 'login',
-    //             reason: 'no user info found in sessionInfo'
-    //         });
-    //     }
-    // };
-
     useEffect(() => {
         const load = async () => {
             if (!currentUser) return;
@@ -67,92 +49,6 @@ export default function Home() {
         };
         load();
     }, [currentUser]);
-
-    // useEffect(() => {
-    //     if (currentUser) {
-    //         loadProgress();
-    //     }
-    // }, [currentUser]);
-
-
-    // // previous version: login to create session file
-    // useEffect(() => {
-    //     const loadOrCreateProgress = async () => {
-    //         if (!currentUser) return;
-
-    //         const docRef = doc(db, "sessionInfo", currentUser.uid);
-    //         const snapshot = await getDoc(docRef);
-
-    //         if (snapshot.exists()) {
-    //             setLocalProgress(snapshot.data());
-    //         } else {
-    //             const defaultProgress = {
-    //                 uid: currentUser.uid,
-    //                 welcomeCompleted: false,
-    //                 consentCompleted: false,
-    //                 preTestCompleted: false,
-    //                 trainingCompleted: false,
-    //                 postTestCompleted: false,
-    //                 surveyCompleted: false,
-    //                 groupNumber: null
-    //             };
-    //             await setDoc(docRef, defaultProgress);
-    //             setLocalProgress(defaultProgress);
-    //         }
-    //     };
-
-    //     loadOrCreateProgress();
-    // }, [currentUser]);
-
-
-    // // assignGroupNumber function
-    // const assignGroupNumber = async () => {
-    //     const countsRef = doc(db, 'megaData', 'groupCounts');
-
-    //     const chosenGroup = await runTransaction(db, async (transaction) => {
-    //         const snapshot = await transaction.get(countsRef);
-    //         if (!snapshot.exists()) throw new Error("groupCounts doc not found");
-
-    //         const counts = snapshot.data();
-
-    //         const minCount = Math.min(...Object.values(counts));
-    //         const candidates = Object.keys(counts).filter(
-    //             (k) => counts[k] === minCount
-    //         );
-
-    //         const selected = candidates[Math.floor(Math.random() * candidates.length)];
-    //         transaction.update(countsRef, {
-    //             [selected]: counts[selected] + 1
-    //         });
-
-    //         return parseInt(selected);
-    //     });
-
-    //     return chosenGroup;
-    // };
-
-    // const markComplete = async (stage) => {
-    //     if (!currentUser) return;
-
-    //     try {
-    //         const docRef = doc(db, "sessionInfo", currentUser.uid);
-    //         const updated = { ...localProgress, [stage]: true };
-
-    //         // if (stage === 'consentCompleted' && localProgress.groupNumber == null) {
-    //         //     const groupNum = await assignGroupNumber();
-    //         //     updated.groupNumber = groupNum;
-    //         // }
-
-    //         setLocalProgress(updated);
-    //         await setDoc(docRef, updated);
-    //     } catch (error) {
-    //         await logClientError({
-    //             error,
-    //             source: 'NewHome.jsx → markComplete',
-    //             reason: `Error updating stage "${stage}" for user`
-    //         });
-    //     }
-    // };
 
     const markComplete = async (flagPath) => {
         if (!currentUser) return;
@@ -188,11 +84,9 @@ export default function Home() {
         );
     }
 
-
     if (loading || !data) {
         return <div className="p-4">Loading...</div>;
     }
-
 
     const FLOW = [
         { path: 'progress.welcomeCompleted', render: () => <Welcome onComplete={() => markComplete('progress.welcomeCompleted')} /> },
@@ -204,25 +98,6 @@ export default function Home() {
     ];
 
     const next = FLOW.find(({ path }) => !getFlag(data, path));
-
-
-    // let currentStepComponent;
-
-    // if (!localProgress.welcomeCompleted) {
-    //     currentStepComponent = <Welcome onComplete={() => markComplete('welcomeCompleted')} />;
-    // } else if (!localProgress.consentCompleted) {
-    //     currentStepComponent = <Consent onComplete={() => markComplete('consentCompleted')} />;
-    // } else if (!localProgress.preTestCompleted) {
-    //     currentStepComponent = <PreTest onComplete={() => markComplete('preTestCompleted')} />;
-    // } else if (!localProgress.trainingCompleted) {
-    //     currentStepComponent = <Training onComplete={() => markComplete('trainingCompleted')} />;
-    // } else if (!localProgress.postTestCompleted) {
-    //     currentStepComponent = <PostTest onComplete={() => markComplete('postTestCompleted')} />;
-    // } else if (!localProgress.surveyCompleted) {
-    //     currentStepComponent = <Survey onComplete={() => markComplete('surveyCompleted')} />;
-    // } else {
-    //     currentStepComponent = <QRCode />;
-    // }
 
     return (
         <>

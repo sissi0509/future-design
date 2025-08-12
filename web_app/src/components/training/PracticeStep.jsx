@@ -1,57 +1,41 @@
-import { useState, useMemo } from "react";
-import TextQuestion from "../questions/TextQuestion";
-import MultipleChoice from "../questions/MultipleChoice";
-import Questionnaire from '../questions/QuestionNaire'; // Import for types, if needed
+// PracticeStep.jsx
+import Questionnaire from '../questions/QuestionNaire';
 
-export default function PracticeStep({ onBack, onComplete }) {
-    const [textAns, setTextAns] = useState("");
-    const [mcq, setMcq] = useState("");
+// Import practice question sets once, then map by stage number
+import stage1PracticeQuestions from '../../data/questions/training/stage1Practice';
+import stage2PracticeQuestions from '../../data/questions/training/stage2Practice';
+import stage3PracticeQuestions from '../../data/questions/training/stage3Practice';
+import stage4PracticeQuestions from '../../data/questions/training/stage4Practice';
+import stage5PracticeQuestions from '../../data/questions/training/stage5Practice';
+// If Stage 6 has no practice, you can omit it or point to a final set.
 
-    const wordCount = useMemo(
-        () => (textAns.trim() ? textAns.trim().split(/\s+/).length : 0),
-        [textAns]
-    );
-    const valid = wordCount >= 20 && !!mcq;
+const PRACTICE_BY_STAGE = {
+    1: stage1PracticeQuestions,
+    2: stage2PracticeQuestions,
+    3: stage3PracticeQuestions,
+    4: stage4PracticeQuestions,
+    5: stage5PracticeQuestions,
+};
 
-    const submit = (e) => {
-        e.preventDefault();
-        if (!valid) return;
-        // TODO: save to Firestore
-        onComplete?.({ textAns, mcq });
-    };
+export default function PracticeStep({ stage, onBack, onComplete }) {
+    const questions = PRACTICE_BY_STAGE[stage];
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-                <button className="btn btn-ghost" onClick={onBack}>← Back</button>
-                <h2 className="text-xl font-bold">Practice</h2>
-                <div />
-            </div>
+        <div className="mx-auto w-full max-w-3xl px-4 pt-4 pb-24">
 
-            <form onSubmit={submit} className="space-y-6">
-                <TextQuestion
-                    label="Summarize the textbook excerpt’s key idea."
-                    value={textAns}
-                    onChange={setTextAns}
-                    minWords={20}
-                    maxWords={Infinity}
-                    placeholder="Write at least 20 words…"
-                />
-
-                <MultipleChoice
-                    prompt="Which statement matches the concept best?"
-                    options={["A", "B", "C", "D"]}
-                    value={mcq}
-                    onChange={setMcq}
-                />
-
-                <div className="flex justify-end gap-2">
-                    <button type="button" className="btn" onClick={onBack}>Cancel</button>
-                    <button type="submit" className="btn btn-primary" disabled={!valid}>
-                        Submit
-                    </button>
+            {!questions ? (
+                <div className="rounded-xl border p-4">
+                    <p>No practice questions found for Stage {stage}.</p>
                 </div>
-            </form>
+            ) : (
+                <Questionnaire
+                    questions={questions}
+                    label={`Practice`}
+                    collectionType={`stage${stage}Practice`}
+                    userField={`progress.training.stage${stage}.practiceCompleted`}
+                    onComplete={onComplete}
+                />
+            )}
         </div>
     );
 }

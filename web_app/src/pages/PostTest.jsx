@@ -7,7 +7,7 @@ export default function PostTest({ onComplete }) {
             questions={postTestQuestions}
             label="Post-Test"
             collectionType="postTest"
-            userField="postTestCompleted"
+            userField="progress.postTestCompleted"
             onComplete={onComplete}
         />
     );
