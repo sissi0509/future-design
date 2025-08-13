@@ -1,9 +1,16 @@
-// src/components/training/EvaluationStep.jsx
-import Questionnaire from "../questions/QuestionNaire";
-import evaluation from "../../data/questions/training/evaluation"; // { reading, questions }
+import Questionnaire from '../questions/QuestionNaire';
 
-export default function EvaluationStep({ onComplete }) {
-    const { reading, questions } = evaluation || {};
+// bring both reading + questions from one file
+import stage1 from '../../data/questions/training/stage1Evaluation';
+
+const EVALUATION_BY_STAGE = {
+    1: stage1, // { reading, questions }
+    // 2: stage2, 3: stage3, ... add later using same pattern
+};
+
+export default function EvaluationStep({ stage, onComplete }) {
+    const mod = EVALUATION_BY_STAGE[stage] || {};
+    const { reading, questions } = mod;
 
     return (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1fr)]">
@@ -15,14 +22,10 @@ export default function EvaluationStep({ onComplete }) {
                         {reading.sections?.map((sec, i) => (
                             <section key={i} className="mt-4">
                                 {sec.title && <h4 className="font-medium mb-1">{sec.title}</h4>}
-                                {sec.body && (
-                                    <p className="text-gray-700 leading-6 whitespace-pre-line">{sec.body}</p>
-                                )}
+                                {sec.body && <p className="text-gray-700 leading-6 whitespace-pre-line">{sec.body}</p>}
                                 {sec.bullets && (
                                     <ul className="list-disc pl-5 mt-2 space-y-1">
-                                        {sec.bullets.map((b, j) => (
-                                            <li key={j}>{b}</li>
-                                        ))}
+                                        {sec.bullets.map((b, j) => <li key={j}>{b}</li>)}
                                     </ul>
                                 )}
                             </section>
@@ -38,9 +41,9 @@ export default function EvaluationStep({ onComplete }) {
                 {questions ? (
                     <Questionnaire
                         questions={questions}
-                        label="Evaluation"
-                        collectionType="trainingEvaluation"
-                        userField="progress.training.evaluationCompleted"
+                        label={`Stage${stage}-Evaluation`}
+                        collectionType={`stage${stage}Evaluation`}
+                        userField={`progress.training.stage${stage}.evaluationCompleted`}
                         onComplete={onComplete}
                     />
                 ) : (

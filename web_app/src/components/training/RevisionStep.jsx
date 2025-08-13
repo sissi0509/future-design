@@ -1,148 +1,115 @@
 // src/components/training/RevisionStep.jsx
-import { useEffect, useMemo, useState } from "react";
-import {
-    collection,
-    query,
-    where,
-    limit,
-    getDocs,
-    addDoc,
-    updateDoc,
-    setDoc,
-    doc,
-} from "firebase/firestore";
-import { useAuth } from "../User/AuthSetUp";          // ⬅️ adjust if needed
-import { db } from "../../config/Firebase";           // ⬅️ adjust if needed
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { doc, getDoc, updateDoc, setDoc, collection, addDoc } from "firebase/firestore";
+import { useAuth } from "../User/AuthSetUp";
+import { db } from "../../config/Firebase";
 import ChatBoxAI from "./ChatBoxAI";
 import TextQuestion from "../questions/TextQuestion";
 
-// Practice question sets (to locate the text question + constraints)
-import stage1PracticeQuestions from "../../data/questions/training/stage1Practice";
-// import stage2PracticeQuestions from "../../data/questions/training/stage2Practice";
-// import stage3PracticeQuestions from "../../data/questions/training/stage3Practice";
-// import stage4PracticeQuestions from "../../data/questions/training/stage4Practice";
-// import stage5PracticeQuestions from "../../data/questions/training/stage5Practice";
-
-const PRACTICE_BY_STAGE = {
-    1: stage1PracticeQuestions,
-    // 2: stage2PracticeQuestions,
-    // 3: stage3PracticeQuestions,
-    // 4: stage4PracticeQuestions,
-    // 5: stage5PracticeQuestions,
-};
-
-export default function RevisionStep({ stage, onComplete }) {
+export default function RevisionStep({ onComplete }) {
     const { currentUser } = useAuth();
 
-    // ---- Collapsible coach panel (persist to localStorage) ----
-    const LS_KEY = "aiCoachCollapsed";
     const [collapsed, setCollapsed] = useState(false);
     useEffect(() => {
-        const saved = localStorage.getItem(LS_KEY);
-        if (saved != null) setCollapsed(saved === "1");
+        const s = localStorage.getItem("aiCoachCollapsed");
+        if (s != null) setCollapsed(s === "1");
     }, []);
     useEffect(() => {
-        localStorage.setItem(LS_KEY, collapsed ? "1" : "0");
+        localStorage.setItem("aiCoachCollapsed", collapsed ? "1" : "0");
     }, [collapsed]);
 
-    // ---- Find the *text* question from this stage's practice set ----
-    const textQuestion = useMemo(() => {
-        const set = PRACTICE_BY_STAGE[stage] || [];
-        return set.find((q) => q.type === "text") || null;
-    }, [stage]);
-
-    const minWords = textQuestion?.minWords ?? 0;
-    const maxWords = textQuestion?.maxWords ?? Infinity;
-
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [prevQuestion, setPrevQuestion] = useState("");
     const [prevAnswer, setPrevAnswer] = useState("");
     const [editValue, setEditValue] = useState("");
-    const [error, setError] = useState("");
 
-    // ---- Load previous practice answer by querying responses where type == stage${stage}Practice ----
+    const [minWords, setMinWords] = useState(30);
+    const [maxWords, setMaxWords] = useState(400);
+
+    // Load preset “previous info” from sessionInfo/{uid}.progress.training.seed
     useEffect(() => {
-        if (!currentUser?.uid || !textQuestion?.key) {
+        if (!currentUser?.uid) {
             setLoading(false);
             return;
         }
         let cancelled = false;
-
         (async () => {
             setLoading(true);
             setError("");
             try {
-                const coll = collection(db, "sessionInfo", currentUser.uid, "responses");
-                const q = query(coll, where("type", "==", `stage${stage}Practice`), limit(1));
-                const qs = await getDocs(q);
-
-                let ans = "";
-                if (!qs.empty) {
-                    const data = qs.docs[0].data() || {};
-                    // Your responses store answers as top-level fields like "stage1q4"
-                    if (data[textQuestion.key] != null) {
-                        ans = String(data[textQuestion.key]);
-                    } else if (data.answers && data.answers[textQuestion.key] != null) {
-                        // Fallback if some docs used an "answers" map
-                        ans = String(data.answers[textQuestion.key]);
-                    }
-                }
-
+                const ref = doc(db, "sessionInfo", currentUser.uid);
+                const snap = await getDoc(ref);
+                const data = snap.exists() ? snap.data() : {};
+                const seed = data?.progress?.training?.seed || {};
+                const q = String(seed.question || "");
+                const a = String(seed.answer || "");
                 if (!cancelled) {
-                    setPrevAnswer(ans);
-                    setEditValue(ans); // prefill editor with prior answer
+                    setPrevQuestion(q);
+                    setPrevAnswer(a);
+                    setEditValue(a); // prefill with previous answer
+                    if (Number.isFinite(seed.minWords)) setMinWords(seed.minWords);
+                    if (Number.isFinite(seed.maxWords)) setMaxWords(seed.maxWords);
                 }
             } catch (e) {
-                console.warn("Failed to load prior answer:", e);
-                if (!cancelled) setError("Failed to load your previous answer.");
+                console.warn("Failed to load training seed:", e);
+                if (!cancelled) setError("Failed to load your preset answer.");
             } finally {
                 if (!cancelled) setLoading(false);
             }
         })();
+        return () => { cancelled = true; };
+    }, [currentUser?.uid]);
 
-        return () => {
-            cancelled = true;
-        };
-    }, [currentUser?.uid, stage, textQuestion?.key]);
-
-    // ---- Validate word count (same logic as your TextQuestion) ----
     const wordCount = editValue.trim() ? editValue.trim().split(/\s+/).length : 0;
     const isValid = wordCount >= minWords && wordCount <= maxWords;
 
-    // ---- Save revision + mark progress.revisionCompleted = true ----
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
         if (!currentUser?.uid) return;
-
         try {
-            // Save a new revision response (random doc id)
-            const coll = collection(db, "sessionInfo", currentUser.uid, "responses");
-            await addDoc(coll, {
-                type: `stage${stage}Revision`,
-                originalKey: textQuestion?.key || "",
-                original: prevAnswer || "",
-                revised: editValue || "",
-                updatedAt: Date.now(),
-            });
-
-            // Mark progress on the root sessionInfo/{uid} doc
             const userRef = doc(db, "sessionInfo", currentUser.uid);
+
+            // Optional: keep a revision record in subcollection for audit/history
+            try {
+                const coll = collection(db, "sessionInfo", currentUser.uid, "responses");
+                await addDoc(coll, {
+                    type: "trainingRevision",
+                    presetQuestion: prevQuestion,
+                    original: prevAnswer,
+                    revised: editValue,
+                    updatedAt: Date.now(),
+                });
+            } catch { /* non-fatal */ }
+
+            // Mark revision completed + store final revision on root doc
             try {
                 await updateDoc(userRef, {
-                    [`progress.training.stage${stage}.revisionCompleted`]: true,
+                    "progress.training.revisionCompleted": true,
+                    "progress.training.revisionAnswer": editValue,
+                    "progress.training.revisionUpdatedAt": Date.now(),
                 });
             } catch {
-                // If doc doesn't exist yet, create it with a merge
-                const patch = { progress: { training: {} } };
-                patch.progress.training[`stage${stage}`] = { revisionCompleted: true };
-                await setDoc(userRef, patch, { merge: true });
+                await setDoc(
+                    userRef,
+                    {
+                        progress: {
+                            training: {
+                                revisionCompleted: true,
+                                revisionAnswer: editValue,
+                                revisionUpdatedAt: Date.now(),
+                            },
+                        },
+                    },
+                    { merge: true }
+                );
             }
 
-            // Notify parent (StepPage -> Training will navigate back)
-            onComplete?.({ original: prevAnswer, revised: editValue });
+            onComplete?.({ presetQuestion: prevQuestion, original: prevAnswer, revised: editValue });
         } catch (e) {
             console.warn("Failed to save revision:", e);
             setError("Failed to save. Please try again.");
         }
-    };
+    }, [currentUser?.uid, editValue, prevAnswer, prevQuestion, onComplete]);
 
     if (!currentUser?.uid) {
         return <div className="text-sm text-gray-600">Please sign in to view this page.</div>;
@@ -152,10 +119,10 @@ export default function RevisionStep({ stage, onComplete }) {
         <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
             <div className="border rounded-xl overflow-hidden h-[85vh]">
                 <div className="relative flex h-full">
-                    {/* LEFT: TextQuestion editor (prefilled) */}
+                    {/* LEFT: editor */}
                     <div className="flex-1 min-w-0 flex flex-col">
                         <div className="px-4 py-3 border-b bg-base-100 flex items-center justify-between">
-                            <div className="font-medium">Revise your Practice Response</div>
+                            <div className="font-medium">Revise your preset response</div>
                             <button
                                 className="btn btn-sm btn-outline"
                                 onClick={() => setCollapsed((c) => !c)}
@@ -172,24 +139,25 @@ export default function RevisionStep({ stage, onComplete }) {
                                 <div className="space-y-5">
                                     {error && <div className="alert alert-warning">{error}</div>}
 
-                                    {textQuestion ? (
-                                        <TextQuestion
-                                            label={textQuestion.label}
-                                            value={editValue}
-                                            onChange={setEditValue}
-                                            placeholder={textQuestion.placeholder || "Revise your answer here…"}
-                                            minWords={minWords}
-                                            maxWords={maxWords}
-                                        />
-                                    ) : (
-                                        <div className="rounded-xl border p-4">
-                                            No text question found for this stage.
+                                    {prevQuestion && (
+                                        <div className="rounded-xl border p-3 bg-base-200/50 text-sm text-gray-700">
+                                            <div className="font-medium mb-1">Previous Question</div>
+                                            <p className="whitespace-pre-wrap leading-6">{prevQuestion}</p>
                                         </div>
                                     )}
 
+                                    <TextQuestion
+                                        label="Your revised answer"
+                                        value={editValue}
+                                        onChange={setEditValue}
+                                        placeholder="Improve your earlier answer. Be specific about what changed and why."
+                                        minWords={minWords}
+                                        maxWords={maxWords}
+                                    />
+
                                     {prevAnswer && (
                                         <div className="rounded-xl border p-3 bg-base-200/50 text-sm text-gray-700">
-                                            <div className="font-medium mb-1">Previously saved answer</div>
+                                            <div className="font-medium mb-1">Preset (original) answer</div>
                                             <p className="whitespace-pre-wrap leading-6">{prevAnswer}</p>
                                         </div>
                                     )}
@@ -200,7 +168,7 @@ export default function RevisionStep({ stage, onComplete }) {
                                             className="btn btn-ghost"
                                             onClick={() => setEditValue(prevAnswer || "")}
                                         >
-                                            Reset to previous
+                                            Reset to preset
                                         </button>
                                         <button
                                             type="button"
@@ -216,7 +184,7 @@ export default function RevisionStep({ stage, onComplete }) {
                         </div>
                     </div>
 
-                    {/* RIGHT: Collapsible AI Coach */}
+                    {/* RIGHT: AI Coach */}
                     <div
                         className={[
                             "bg-base-200 transition-[width] duration-200 ease-in-out h-full relative",

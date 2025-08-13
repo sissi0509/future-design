@@ -2,10 +2,7 @@ const admin = require("firebase-admin");
 const users = require("./users.json");
 const serviceAccount = require("./serviceAccountKey.json");
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-});
-
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
 async function upsertAuthUser({ email, password }) {
@@ -22,31 +19,36 @@ async function upsertAuthUser({ email, password }) {
     }
 }
 
-async function ensureMinimalSessionInfo({ uid, email, groupNumber }) {
+async function ensureMinimalSessionInfo({ uid, email, groupNumber, trainingSeed }) {
     const ref = db.collection("sessionInfo").doc(uid);
     const snap = await ref.get();
 
+    const seed = trainingSeed || {};
+    const patch = {
+        uid,
+        email,
+        groupNumber,
+        progress: {
+            training: {
+                // Preset “previous info” used by Revision
+                seed: {
+                    question: seed.question || null,
+                    answer: seed.answer || "",
+                    minWords: Number.isFinite(seed.minWords) ? seed.minWords : 30,
+                    maxWords: Number.isFinite(seed.maxWords) ? seed.maxWords : 400,
+                },
+                evaluationCompleted: false,
+                revisionCompleted: false,
+            },
+        },
+    };
+
     if (!snap.exists) {
-        await ref.set({
-            uid,
-            email,
-            groupNumber, // assigned at creation
-        });
+        await ref.set(patch, { merge: true });
         console.log(`sessionInfo created for ${email}`);
     } else {
-        const data = snap.data() || {};
-        const updates = {};
-        if (data.email !== email) updates.email = email;
-        if (data.groupNumber === undefined && groupNumber !== undefined) {
-            updates.groupNumber = groupNumber;
-        }
-
-        if (Object.keys(updates).length) {
-            await ref.set(updates, { merge: true });
-            console.log(`🔁 sessionInfo updated for ${email}:`, updates);
-        } else {
-            console.log(`✅ sessionInfo already OK for ${email}`);
-        }
+        await ref.set(patch, { merge: true });
+        console.log(`🔁 sessionInfo updated for ${email} (seed & training flags)`);
     }
 }
 
@@ -58,6 +60,7 @@ async function run() {
                 uid: userRecord.uid,
                 email: user.email,
                 groupNumber: user.groupNumber,
+                trainingSeed: user.trainingSeed,
             });
         } catch (err) {
             console.error(`❌ Failed to process ${user.email}:`, err.message);

@@ -2,11 +2,23 @@
     {
         "email": "user1@example.com",
         "password": "usedfortesting123",
-        "groupNumber": 1
+        "groupNumber": 1,
+        "trainingSeed": {
+            "question": "Briefly describe your current study workflow.",
+            "answer": "I usually cram the night before, skim notes, and try a few problems.",
+            "minWords": 30,
+            "maxWords": 400
+        }
     },
     {
         "email": "user2@example.com",
         "password": "usedfortesting123",
-        "groupNumber": 2
+        "groupNumber": 2,
+        "trainingSeed": {
+            "question": "Briefly describe your current study workflow.",
+            "answer": "I review after each lecture and space practice using Anki.",
+            "minWords": 30,
+            "maxWords": 400
+        }
     }
 ]

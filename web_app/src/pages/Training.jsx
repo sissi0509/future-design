@@ -2,43 +2,31 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "../components/User/AuthSetUp";
 import { db } from "../config/Firebase";
-import LevelBoardModules from "../components/training/LevelBoard";
+import LevelBoard from "../components/training/LevelBoard";
 import StepPage from "../components/training/StepPage";
-import { logClientError } from '../services/errorHandle/logClientError';
+import { logClientError } from "../services/errorHandle/logClientError";
+import TrainingInstructions from '../data/questions/training/instructions'
 
-// Map Firestore -> board shape
-function normalizeCompleted(progress) {
-    const out = {};
-    const training = progress?.training || {};
-
-    // ensure stages 1..5 exist (missing -> false)
-    for (let i = 1; i <= 5; i++) {
-        const s = training[`stage${i}`] || {};
-        out[i] = {
-            practice: !!s.practiceCompleted,
-            evaluation: !!s.evaluationCompleted,
-            revision: !!s.revisionCompleted,
-        };
-    }
-    return out;
-}
-
-export default function Training() {
+export default function Training({ onComplete }) {
     const { currentUser } = useAuth();
-    const [screen, setScreen] = useState({ view: "board" });
-    const [completed, setCompleted] = useState({});
 
-    // Realtime subscribe to sessionInfo/{uid}
+    const [view, setView] = useState("board");
+    const [activeStep, setActiveStep] = useState("evaluation"); // "evaluation" | "revision"
+    const [completed, setCompleted] = useState({ evaluation: false, revision: false });
+
     useEffect(() => {
-        if (!currentUser?.uid) return;
 
+        if (!currentUser?.uid) return;
         const ref = doc(db, "sessionInfo", currentUser.uid);
         const unsub = onSnapshot(
             ref,
             (snap) => {
                 const data = snap.data() || {};
-                const progress = data.progress || {};
-                setCompleted(normalizeCompleted(progress));
+                const training = data.progress?.training || {};
+                setCompleted({
+                    evaluation: !!training.evaluationCompleted,
+                    revision: !!training.revisionCompleted,
+                });
             },
             (err) => {
                 logClientError({
@@ -51,24 +39,36 @@ export default function Training() {
         return unsub;
     }, [currentUser?.uid]);
 
-    if (screen.view === "board") {
+    const items = [
+        { id: "evaluation", label: "Evaluation", done: completed.evaluation },
+        { id: "revision", label: "Revision", done: completed.revision },
+    ];
+    const canSubmit = completed.evaluation && completed.revision;
+
+    if (view === "board") {
         return (
-            <LevelBoardModules
-                completed={completed}
-                onOpen={(stage, step) => setScreen({ view: "step", stage, step })}
+            <LevelBoard
+                instructions={TrainingInstructions}
+                items={items}
+                onSelect={(id) => {
+                    setActiveStep(id);
+                    setView("step");
+                }}
+                canSubmit={canSubmit}
+                onSubmit={() => {
+                    if (!canSubmit) return;
+                    onComplete?.(); // marks progress.training.trainingCompleted
+                }}
             />
         );
     }
 
-    if (screen.view === "step") {
+    if (view === "step") {
         return (
             <StepPage
-                stage={screen.stage}
-                step={screen.step}
-                onBackToBoard={() => setScreen({ view: "board" })}
-                onFinishedStep={() => {
-                    setScreen({ view: "board" });
-                }}
+                step={activeStep}
+                onBackToBoard={() => setView("board")}
+                onFinishedStep={() => setView("board")} // StepPage writes completion to Firestore
             />
         );
     }
