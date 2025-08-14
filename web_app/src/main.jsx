@@ -1,18 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { Provider } from 'react-redux';
-import { store } from './store.js';
-import { AuthProvider } from './components/User/AuthSetUp.jsx'
-
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.jsx';
+import { AuthProvider } from './components/User/AuthSetUp.jsx';
+import { AnswersRegistryProvider } from './context/AnswersRegistry.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Provider store={store}>
-      <AuthProvider>
+    <AuthProvider>
+      <AnswersRegistryProvider>
         <App />
-      </AuthProvider>
-    </Provider>
+      </AnswersRegistryProvider>
+    </AuthProvider>
   </StrictMode>,
-)
+);

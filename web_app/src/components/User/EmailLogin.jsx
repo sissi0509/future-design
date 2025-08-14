@@ -8,6 +8,7 @@ export default function EmailLogin({ onClose }) {
   const [password, setPassword] = useState('');
 
   const handleEmailLogin = async () => {
+
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
@@ -21,7 +22,11 @@ export default function EmailLogin({ onClose }) {
   };
 
   return (
-    <div>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleEmailLogin();
+    }}
+    >
       <div>
         <label htmlFor="email">Email</label>
         <input
@@ -45,14 +50,9 @@ export default function EmailLogin({ onClose }) {
         />
       </div>
 
-      <button className="btn" onClick={handleEmailLogin}>
-        Login
-      </button>
+      <button className="btn" type="submit">Login</button>
+      <button className="btn" type="button" onClick={onClose}>Cancel</button>
+    </form>
 
-
-      <button className="btn" onClick={onClose}>
-        Cancel
-      </button>
-    </div >
   );
 }

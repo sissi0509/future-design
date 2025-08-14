@@ -1,62 +1,48 @@
-// src/pages/training/StepPage.jsx (or wherever you keep it)
+// src/pages/training/StepPage.jsx
 import { useCallback } from "react";
-import { doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../User/AuthSetUp";
 import { db } from "../../config/Firebase";
 
-// If you still have these components, drop their old `stage` prop.
-// They should call `onComplete(answers)` when the user finishes.
 import EvaluationStep from "./EvaluationStep";
 import RevisionStep from "./RevisionStep";
 
-export default function StepPage({
-    step,                 // "evaluation" | "revision"
-    onBackToBoard,        // () => void
-    onFinishedStep,       // () => void
-}) {
+export default function StepPage({ step, onBackToBoard, onFinishedStep }) {
     const { currentUser } = useAuth();
 
-    // Write completion + (optional) answers for the current step
-    const markStepComplete = useCallback(
+    // Save the current training sub-step (evaluation | revision)
+    const saveTrainingStep = useCallback(
         async (which, answers) => {
             if (!currentUser?.uid) return;
+            const uid = currentUser.uid;
 
-            const ref = doc(db, "sessionInfo", currentUser.uid);
-
-            // Firestore dot-paths for your new two-step schema
-            const completedPath =
+            const type =
+                which === "evaluation" ? "trainingEvaluation" : "trainingRevision";
+            const flagPath =
                 which === "evaluation"
                     ? "progress.training.evaluationCompleted"
                     : "progress.training.revisionCompleted";
 
-            const answersPath =
-                which === "evaluation"
-                    ? "progress.training.evaluationAnswers"
-                    : "progress.training.revisionAnswers";
-
-            await updateDoc(ref, {
-                [completedPath]: true,
-                [answersPath]: answers ?? null,
+            await addDoc(collection(db, "sessionInfo", uid, "responses"), {
+                type,
+                ...answers,
             });
+
+            await updateDoc(doc(db, "sessionInfo", uid), { [flagPath]: true });
+
         },
         [currentUser?.uid]
     );
 
     const handleComplete = async (answers) => {
-        // mark current step done in Firestore
-        await markStepComplete(step, answers);
-        // return to board (Training listens via onSnapshot and will refresh)
-        onFinishedStep?.();
+        await saveTrainingStep(step, answers);
+        onFinishedStep?.(); // go back to the board / refresh
     };
 
-    const titles = {
-        evaluation: "Evaluation",
-        revision: "Revision",
-    };
+    const titles = { evaluation: "Evaluation", revision: "Revision" };
 
     return (
         <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
-            {/* Header */}
             <div className="mb-6 flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-semibold">{titles[step] || "Training"}</h2>
                 <button
@@ -68,7 +54,6 @@ export default function StepPage({
                 </button>
             </div>
 
-            {/* Body */}
             {step === "evaluation" && <EvaluationStep onComplete={handleComplete} />}
             {step === "revision" && <RevisionStep onComplete={handleComplete} />}
         </div>

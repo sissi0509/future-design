@@ -1,14 +1,35 @@
-import Questionnaire from '../components/questions/QuestionNaire';
-import surveyQuestions from '../data/questions/survey';
+import { useState } from "react";
+import { useAuth } from "../components/User/AuthSetUp";
+import Questionnaire from "../components/questions/Questionnaire";
+import surveyQuestions from "../data/questions/survey";
+import { useAnswersRegistry } from "../context/AnswersRegistry";
 
-export default function PreTest({ onComplete }) {
+export default function Survey({ onSubmit }) {
+    const { currentUser } = useAuth();
+    const uid = currentUser?.uid;
+    const { set, remove } = useAnswersRegistry();
+    const [submitting, setSubmitting] = useState(false);
+
+    const key = "survey";
+
+    const handleSubmit = async (answers) => {
+        setSubmitting(true);
+        try {
+            await onSubmit?.(answers);
+            remove(key);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <Questionnaire
             questions={surveyQuestions}
-            label="Survey"
-            collectionType="survey"
-            userField="progress.surveyCompleted"
-            onComplete={onComplete}
+            title="Pre-Test"
+            autosaveKey={uid ? `survey-${uid}` : undefined}
+            submitting={submitting}
+            onChangeAnswers={(answers) => set(key, { type: "survey", answers })}
+            onSubmit={handleSubmit}
         />
     );
 }

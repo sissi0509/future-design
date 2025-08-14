@@ -86,7 +86,6 @@ export default function RevisionStep({ onComplete }) {
                 await updateDoc(userRef, {
                     "progress.training.revisionCompleted": true,
                     "progress.training.revisionAnswer": editValue,
-                    "progress.training.revisionUpdatedAt": Date.now(),
                 });
             } catch {
                 await setDoc(
@@ -96,7 +95,6 @@ export default function RevisionStep({ onComplete }) {
                             training: {
                                 revisionCompleted: true,
                                 revisionAnswer: editValue,
-                                revisionUpdatedAt: Date.now(),
                             },
                         },
                     },

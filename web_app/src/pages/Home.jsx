@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 import { logClientError } from '../services/errorHandle/logClientError';
 import Header from '../components/Header';
@@ -75,6 +75,22 @@ export default function Home() {
         }
     };
 
+    const saveAnswers = async (uid, { type, answers, flagPath }) => {
+        await addDoc(collection(db, 'sessionInfo', uid, 'responses'), {
+            type,
+            ...answers,
+        });
+        // flip the progress flag (on the root doc)
+        await updateDoc(doc(db, 'sessionInfo', uid), { [flagPath]: true });
+    };
+
+    //save then optimistically update local state via markComplete
+    const saveAndComplete = async ({ type, flagPath, answers }) => {
+        if (!currentUser?.uid) return;
+        await saveAnswers(currentUser.uid, { type, answers, flagPath });
+        await markComplete(flagPath); // keeps your local `data` in sync
+    };
+
     if (!currentUser) {
         return (
             <div className="p-4 text-center">
@@ -89,12 +105,53 @@ export default function Home() {
     }
 
     const FLOW = [
-        { path: 'progress.welcomeCompleted', render: () => <Welcome onComplete={() => markComplete('progress.welcomeCompleted')} /> },
-        { path: 'progress.consentCompleted', render: () => <Consent onComplete={() => markComplete('progress.consentCompleted')} /> },
-        { path: 'progress.preTestCompleted', render: () => <PreTest onComplete={() => markComplete('progress.preTestCompleted')} /> },
-        { path: 'progress.training.trainingCompleted', render: () => <Training onComplete={() => markComplete('progress.training.trainingCompleted')} /> },
-        { path: 'progress.postTestCompleted', render: () => <PostTest onComplete={() => markComplete('progress.postTestCompleted')} /> },
-        { path: 'progress.surveyCompleted', render: () => <Survey onComplete={() => markComplete('progress.surveyCompleted')} /> },
+        {
+            path: 'progress.welcomeCompleted',
+            render: () => <Welcome onComplete={() => markComplete('progress.welcomeCompleted')} />
+        },
+
+        {
+            path: 'progress.consentCompleted',
+            render: () => <Consent onComplete={() => markComplete('progress.consentCompleted')} />
+        },
+
+        {
+            path: 'progress.preTestCompleted',
+            render: () => (
+                <PreTest
+                    onSubmit={(answers) =>
+                        saveAndComplete({ type: 'preTest', flagPath: 'progress.preTestCompleted', answers })
+                    }
+                />
+            )
+        },
+
+        {
+            path: 'progress.training.trainingCompleted',
+            render: () => <Training onComplete={() => markComplete('progress.training.trainingCompleted')} />
+        },
+
+        {
+            path: 'progress.postTestCompleted',
+            render: () => (
+                <PostTest
+                    onSubmit={(answers) =>
+                        saveAndComplete({ type: 'postTest', flagPath: 'progress.postTestCompleted', answers })
+                    }
+                />
+            )
+        },
+
+        {
+            path: 'progress.surveyCompleted',
+            render: () => (
+                <Survey
+                    onSubmit={(answers) =>
+                        saveAndComplete({ type: 'survey', flagPath: 'progress.surveyCompleted', answers })
+                    }
+                />
+            )
+        },
     ];
 
     const next = FLOW.find(({ path }) => !getFlag(data, path));

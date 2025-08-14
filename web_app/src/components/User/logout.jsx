@@ -1,22 +1,33 @@
-import { signOut } from 'firebase/auth';
-import { auth } from '../../config/Firebase';
+import { useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../config/Firebase";
+import { useAnswersRegistry } from "../../context/AnswersRegistry";
 
 export default function Logout() {
+    const { flushToResponses } = useAnswersRegistry();
+    const [busy, setBusy] = useState(false);
+
     const handleLogOut = async () => {
+        if (busy) return;
+        setBusy(true);
         try {
-            await signOut(auth);
-            alert("You have logged out successfully!");
-        } catch (error) {
-            console.error("Logout failed:", error);
+            await flushToResponses();
+        } catch (e) {
+            console.error("Flush on logout failed:", e);
+        } finally {
+            try {
+                await signOut(auth);
+            } catch (e) {
+                console.error("Logout failed:", e);
+            } finally {
+                setBusy(false);
+            }
         }
     };
 
     return (
-        <div>
-            <button className="btn" onClick={handleLogOut}>
-                Logout
-            </button>
-        </div>
+        <button className="btn" onClick={handleLogOut} disabled={busy}>
+            {busy ? "Logging out…" : "Logout"}
+        </button>
     );
 }
-
