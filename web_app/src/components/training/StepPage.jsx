@@ -1,6 +1,6 @@
 // src/pages/training/StepPage.jsx
 import { useCallback } from "react";
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 import { useAuth } from "../User/AuthSetUp";
 import { db } from "../../config/Firebase";
 
@@ -23,10 +23,16 @@ export default function StepPage({ step, onBackToBoard, onFinishedStep }) {
                     ? "progress.training.evaluationCompleted"
                     : "progress.training.revisionCompleted";
 
-            await addDoc(collection(db, "sessionInfo", uid, "responses"), {
-                type,
-                ...answers,
-            });
+            await setDoc(
+                doc(db, "sessionInfo", uid, "responses", type),
+                {
+                    type,
+                    ...answers,
+                    submitted: true,
+                    status: "final-submit",
+                },
+                { merge: true }
+            );
 
             await updateDoc(doc(db, "sessionInfo", uid), { [flagPath]: true });
 
@@ -36,7 +42,7 @@ export default function StepPage({ step, onBackToBoard, onFinishedStep }) {
 
     const handleComplete = async (answers) => {
         await saveTrainingStep(step, answers);
-        onFinishedStep?.(); // go back to the board / refresh
+        onFinishedStep?.();
     };
 
     const titles = { evaluation: "Evaluation", revision: "Revision" };

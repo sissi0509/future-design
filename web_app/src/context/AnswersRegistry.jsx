@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useRef } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 import { db } from "../config/Firebase";
 import { useAuth } from "../components/User/AuthSetUp";
 
@@ -29,14 +29,16 @@ export function AnswersRegistryProvider({ children }) {
         if (entries.length === 0) return;
 
         await Promise.all(
-            entries.map(({ type, answers, extra, savedFrom }) =>
-                addDoc(collection(db, "sessionInfo", uid, "responses"), {
+            entries.map(({ type, answers, savedFrom }) =>
+                setDoc(doc(db, "sessionInfo", uid, "responses", savedFrom), {
                     type,
                     ...answers,
                     submitted: false,
                     status: "logout-save",
                     savedFrom,
-                })
+                },
+                    { merge: true }
+                )
             )
         );
 

@@ -30,6 +30,7 @@ export default function LevelBoard({
                                 className={`w-full flex items-center justify-between rounded-lg border px-4 py-3 text-left transition
                             ${it.done ? "border-green-400" : "border-base-200"}
                             hover:bg-base-200`}
+                                disabled={it.done}
                                 onClick={() => onSelect?.(it.id)}
                             >
                                 <div className="flex items-center gap-3">

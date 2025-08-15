@@ -1,4 +1,3 @@
-// src/components/questions/Questionnaire.jsx
 import { useEffect, useState } from "react";
 import TextQuestion from "./TextQuestion";
 import MultipleChoice from "./MultipleChoice"; // single-choice
@@ -9,11 +8,12 @@ export default function Questionnaire({
     title = "Questions",
     autosaveKey,
     submitting = false,
-    onChangeAnswers, // optional callback for real-time updates      
+    onChangeAnswers,
 }) {
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState({});
     const [initialized, setInitialized] = useState(false); // gate saving after restore
+    const [submitVisible, setSubmitVisible] = useState(false); // 🔒 anti-ghost-click
 
     const total = questions.length;
     const isLast = step === total - 1;
@@ -40,12 +40,25 @@ export default function Questionnaire({
         setInitialized(true);
     }, [autosaveKey]);
 
+    // clamp step after we know total
     useEffect(() => {
         if (!initialized) return;
         if (total === 0) return;
         if (step < 0) setStep(0);
         if (step > total - 1) setStep(total - 1);
     }, [initialized, total, step]);
+
+    // Delay showing the submit button after landing on last step
+    useEffect(() => {
+        if (!initialized) return;
+        if (isLast) {
+            setSubmitVisible(false);
+            const t = setTimeout(() => setSubmitVisible(true), 400); // 300–500ms is fine
+            return () => clearTimeout(t);
+        } else {
+            setSubmitVisible(false);
+        }
+    }, [initialized, isLast, step]);
 
     // ---- save draft ONLY after initialized ----
     useEffect(() => {
@@ -60,12 +73,18 @@ export default function Questionnaire({
     const isValid = (q, v) => {
         if (!q) return false;
         if (q.type === "text") {
-            const min = q.minWords ?? 0, max = q.maxWords ?? Infinity;
+            const min = q.minWords ?? 0,
+                max = q.maxWords ?? Infinity;
             const c = wordCount(v);
             return c >= min && c <= max;
         }
         if (q.type === "multiple") {
-            // single-choice: non-empty string
+            const kind = q.kind || "single";
+            if (kind === "multi") {
+                const arr = Array.isArray(v) ? v : [];
+                return arr.length >= 1;
+            }
+
             return !!v;
         }
         return false;
@@ -78,7 +97,12 @@ export default function Questionnaire({
     const setValue = (key, value) =>
         setAnswers((prev) => ({ ...prev, [key]: value }));
 
-    const next = () => currentValid && setStep((s) => Math.min(s + 1, total - 1));
+    const next = (e) => {
+        // extra safety: blur to avoid “press & hold” repeating
+        e?.currentTarget?.blur?.();
+        if (currentValid) setStep((s) => Math.min(s + 1, total - 1));
+    };
+
     const back = () => setStep((s) => Math.max(s - 1, 0));
 
     const submit = (e) => {
@@ -106,7 +130,7 @@ export default function Questionnaire({
         <form onSubmit={submit} className="max-w-xl mx-auto p-6 space-y-6">
             <div className="flex items-start justify-between">
                 <h1 className="text-2xl font-bold">
-                    {title} ({total} {total === 1 ? "Question" : "Questions"})
+                    {title}
                 </h1>
                 <span className="text-sm text-gray-500">
                     Step {Math.min(step + 1, total)} / {total}
@@ -127,10 +151,17 @@ export default function Questionnaire({
             {current?.type === "multiple" && (
                 <MultipleChoice
                     label={current.label}
-                    options={current.options || []}
-                    value={typeof answers[current.key] === "string" ? answers[current.key] : ""}
-                    onChange={(val) => setValue(current.key, val)} // val is a string
+                    options={current.options}
+                    value={
+                        (current.kind === "multi")
+                            ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
+                            : (answers[current.key] ?? "")
+                    }
+                    onChange={(val) => setValue(current.key, val)}
+                    kind={current.kind || "single"}
+                    qkey={current.key}
                 />
+
             )}
 
             {/* Nav */}
@@ -157,7 +188,8 @@ export default function Questionnaire({
                     <button
                         type="submit"
                         className="btn btn-success"
-                        disabled={!currentValid || submitting}
+                        // 🔒 don’t allow submit until last question is valid *and* the delay has passed
+                        disabled={!currentValid || submitting || !submitVisible}
                     >
                         {submitting ? "Submitting…" : "Submit"}
                     </button>

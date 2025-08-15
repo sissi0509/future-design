@@ -1,30 +1,26 @@
 // ---- Reading (Stage 1 Evaluation) ----
 export const reading = {
-    heading: "Evaluation",
+    heading: "Reading",
     sections: [
         {
-            title: "Key Ideas",
-            bullets: [
-                "Identify balanced future identities (A1): what you aim to be vs. avoid.",
-                "Bridge short-term steps to long-term aims (A2).",
-                "Use specific, domain-targeted strategies (A3).",
-                "Ensure strategies fit your social identity & supports (A4).",
-            ],
-        },
-        {
-            title: "Mini Case",
-            body:
-                "Kai wants a research assistant role next term. They schedule two 45-minute paper-reading blocks weekly (A2/A3), " +
-                "join a lab reading group that matches their identity and values (A4), and keep a one-page brief per paper.",
-        },
-    ],
-};
+            title: "Aligning Plans with Identity",
+            body: `Evaluation helps you check whether your plans align with who you want to become and what you want to avoid (A1).
 
+Link your long-term aim to short-term steps (A2). Weekly or daily actions make progress visible and reduce decision fatigue.
+
+Choose specific, domain-targeted strategies (A3). State when, where, and how you’ll act so the next step is obvious.
+
+Make sure your strategies fit your identity and social supports (A4). Use peers, mentors, or communities that match your values.
+
+Mini case: Kai wants a research assistant role next term. They schedule two 45-minute paper-reading blocks each week (A2/A3), join a lab reading group that fits their identity (A4), and keep a one-page brief per paper.`
+        }
+    ]
+};
 // ---- Questions (Stage 1 Evaluation) ----
 export const questions = [
     {
         type: 'multiple',
-        key: 'stage1e1',
+        key: 'e1',
         label: '1) Which plan best aligns with (A2) linking short-term actions to a long-term goal?',
         options: [
             'Wait until midterm to see what happens.',
@@ -36,7 +32,7 @@ export const questions = [
     },
     {
         type: 'multiple',
-        key: 'stage1e2',
+        key: 'e2',
         label: '2) Which statement best shows (A3) specific, domain-targeted strategies?',
         options: [
             '“I will try harder this semester.”',
@@ -48,7 +44,7 @@ export const questions = [
     },
     {
         type: 'multiple',
-        key: 'stage1e3',
+        key: 'e3',
         label: '3) Which option violates (A4) identity congruence / social support?',
         options: [
             'Join a peer group that shares values and goals.',
@@ -60,7 +56,7 @@ export const questions = [
     },
     {
         type: 'text',
-        key: 'stage1e4',
+        key: 'e4',
         label: '4) Name one long-term goal and list two concrete 1–2 week actions. Who can support you?',
         minWords: 15,
         maxWords: 80,

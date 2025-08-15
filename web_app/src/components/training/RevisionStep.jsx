@@ -1,117 +1,127 @@
 // src/components/training/RevisionStep.jsx
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { doc, getDoc, updateDoc, setDoc, collection, addDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "../User/AuthSetUp";
 import { db } from "../../config/Firebase";
 import ChatBoxAI from "./ChatBoxAI";
 import TextQuestion from "../questions/TextQuestion";
+import { useAnswersRegistry } from "../../context/AnswersRegistry";
+import { getCoachPrompt } from "../../data/questions/training/aiCoachPrompts";
 
 export default function RevisionStep({ onComplete }) {
     const { currentUser } = useAuth();
+    const uid = currentUser?.uid;
+    const { set, remove } = useAnswersRegistry();
 
-    const [collapsed, setCollapsed] = useState(false);
-    useEffect(() => {
-        const s = localStorage.getItem("aiCoachCollapsed");
-        if (s != null) setCollapsed(s === "1");
-    }, []);
-    useEffect(() => {
-        localStorage.setItem("aiCoachCollapsed", collapsed ? "1" : "0");
-    }, [collapsed]);
-
+    const [collapsed, setCollapsed] = useState(false); // always start open
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [prevQuestion, setPrevQuestion] = useState("");
-    const [prevAnswer, setPrevAnswer] = useState("");
-    const [editValue, setEditValue] = useState("");
+    const [groupNumber, setGroupNumber] = useState(null)
 
-    const [minWords, setMinWords] = useState(30);
-    const [maxWords, setMaxWords] = useState(400);
+    const [seed, setSeed] = useState({ question: "", answer: "", min: 30, max: 400 });
+    const [value, setValue] = useState("");
+    const [hydrated, setHydrated] = useState(false); // prevents “empty overwrite” on first render
 
-    // Load preset “previous info” from sessionInfo/{uid}.progress.training.seed
+    const lsKey = uid ? `training-rev-${uid}` : null;   // localStorage key
+    const registryKey = "trainingRevision";              // AnswersRegistry key
+
+    // Load once: seed + any prior draft (from responses doc), then prefer localStorage
     useEffect(() => {
-        if (!currentUser?.uid) {
-            setLoading(false);
-            return;
-        }
         let cancelled = false;
+
         (async () => {
+            if (!uid) { setLoading(false); return; }
             setLoading(true);
             setError("");
+
             try {
-                const ref = doc(db, "sessionInfo", currentUser.uid);
-                const snap = await getDoc(ref);
-                const data = snap.exists() ? snap.data() : {};
-                const seed = data?.progress?.training?.seed || {};
-                const q = String(seed.question || "");
-                const a = String(seed.answer || "");
-                if (!cancelled) {
-                    setPrevQuestion(q);
-                    setPrevAnswer(a);
-                    setEditValue(a); // prefill with previous answer
-                    if (Number.isFinite(seed.minWords)) setMinWords(seed.minWords);
-                    if (Number.isFinite(seed.maxWords)) setMaxWords(seed.maxWords);
-                }
+                const [rootSnap, respSnap] = await Promise.all([
+                    getDoc(doc(db, "sessionInfo", uid)),
+                    getDoc(doc(db, "sessionInfo", uid, "responses", "trainingRevision")),
+                ]);
+
+                const root = rootSnap.exists() ? rootSnap.data() : {};
+                const s = root?.progress?.training?.seed || {};
+                const resp = respSnap.exists() ? respSnap.data() : null;
+
+                const nextSeed = {
+                    question: String(s.question || ""),
+                    answer: String(s.answer || ""),
+                    min: Number.isFinite(s.minWords) ? s.minWords : 30,
+                    max: Number.isFinite(s.maxWords) ? s.maxWords : 400,
+                };
+
+                const respDraft = typeof resp?.revised === "string" ? resp.revised : null;
+
+                // priority: localStorage -> Firestore draft -> seed answer
+                const localStr = lsKey ? localStorage.getItem(lsKey) : null;
+                const initial = localStr !== null ? localStr : (respDraft ?? String(s.answer || ""));
+
+                if (cancelled) return;
+                const gn = Number(root?.groupNumber);
+                setGroupNumber(Number.isFinite(gn) ? gn : null);
+
+                setSeed(nextSeed);
+                setValue(initial);
+                setHydrated(true);
             } catch (e) {
-                console.warn("Failed to load training seed:", e);
-                if (!cancelled) setError("Failed to load your preset answer.");
+                console.warn("Failed to load revision context:", e);
+                if (!cancelled) setError("Failed to load your previous revision.");
             } finally {
                 if (!cancelled) setLoading(false);
             }
         })();
+
         return () => { cancelled = true; };
-    }, [currentUser?.uid]);
+    }, [uid, lsKey]);
 
-    const wordCount = editValue.trim() ? editValue.trim().split(/\s+/).length : 0;
-    const isValid = wordCount >= minWords && wordCount <= maxWords;
+    // Save draft to localStorage AFTER hydration
+    useEffect(() => {
+        if (!lsKey || !hydrated) return;
+        localStorage.setItem(lsKey, value ?? "");
+    }, [lsKey, value, hydrated]);
 
-    const handleSubmit = useCallback(async () => {
-        if (!currentUser?.uid) return;
+    // Register draft for logout flush AFTER hydration
+    useEffect(() => {
+        if (!uid || !hydrated) return;
+        const trimmed = (value || "").trim();
+        if (!trimmed) {
+            remove(registryKey);
+            return;
+        }
+        set(registryKey, {
+            type: "trainingRevision",
+            answers: {
+                presetQuestion: seed.question,
+                original: seed.answer,
+                revised: value,
+            },
+        });
+    }, [uid, hydrated, seed.question, seed.answer, value, set, remove]);
+
+    // Validation
+    const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+    const isValid = wordCount >= seed.min && wordCount <= seed.max;
+
+    // Final submit: parent (StepPage) will write to Firestore + advance flow
+    const handleSubmit = async () => {
+        if (!uid || !isValid) return;
         try {
-            const userRef = doc(db, "sessionInfo", currentUser.uid);
-
-            // Optional: keep a revision record in subcollection for audit/history
-            try {
-                const coll = collection(db, "sessionInfo", currentUser.uid, "responses");
-                await addDoc(coll, {
-                    type: "trainingRevision",
-                    presetQuestion: prevQuestion,
-                    original: prevAnswer,
-                    revised: editValue,
-                    updatedAt: Date.now(),
-                });
-            } catch { /* non-fatal */ }
-
-            // Mark revision completed + store final revision on root doc
-            try {
-                await updateDoc(userRef, {
-                    "progress.training.revisionCompleted": true,
-                    "progress.training.revisionAnswer": editValue,
-                });
-            } catch {
-                await setDoc(
-                    userRef,
-                    {
-                        progress: {
-                            training: {
-                                revisionCompleted: true,
-                                revisionAnswer: editValue,
-                            },
-                        },
-                    },
-                    { merge: true }
-                );
-            }
-
-            onComplete?.({ presetQuestion: prevQuestion, original: prevAnswer, revised: editValue });
+            await onComplete?.({
+                presetQuestion: seed.question,
+                original: seed.answer,
+                revised: value,
+            });
+            // clean up local & registry so logout won’t flush again
+            if (lsKey) localStorage.removeItem(lsKey);
+            remove(registryKey);
         } catch (e) {
-            console.warn("Failed to save revision:", e);
+            console.warn("Failed to save revision (parent):", e);
             setError("Failed to save. Please try again.");
         }
-    }, [currentUser?.uid, editValue, prevAnswer, prevQuestion, onComplete]);
+    };
 
-    if (!currentUser?.uid) {
-        return <div className="text-sm text-gray-600">Please sign in to view this page.</div>;
-    }
+    if (!uid) return <div className="text-sm text-gray-600">Please sign in to view this page.</div>;
 
     return (
         <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
@@ -137,26 +147,26 @@ export default function RevisionStep({ onComplete }) {
                                 <div className="space-y-5">
                                     {error && <div className="alert alert-warning">{error}</div>}
 
-                                    {prevQuestion && (
+                                    {seed.question && (
                                         <div className="rounded-xl border p-3 bg-base-200/50 text-sm text-gray-700">
                                             <div className="font-medium mb-1">Previous Question</div>
-                                            <p className="whitespace-pre-wrap leading-6">{prevQuestion}</p>
+                                            <p className="whitespace-pre-wrap leading-6">{seed.question}</p>
                                         </div>
                                     )}
 
                                     <TextQuestion
                                         label="Your revised answer"
-                                        value={editValue}
-                                        onChange={setEditValue}
+                                        value={value}
+                                        onChange={setValue}
                                         placeholder="Improve your earlier answer. Be specific about what changed and why."
-                                        minWords={minWords}
-                                        maxWords={maxWords}
+                                        minWords={seed.min}
+                                        maxWords={seed.max}
                                     />
 
-                                    {prevAnswer && (
+                                    {seed.answer && (
                                         <div className="rounded-xl border p-3 bg-base-200/50 text-sm text-gray-700">
                                             <div className="font-medium mb-1">Preset (original) answer</div>
-                                            <p className="whitespace-pre-wrap leading-6">{prevAnswer}</p>
+                                            <p className="whitespace-pre-wrap leading-6">{seed.answer}</p>
                                         </div>
                                     )}
 
@@ -164,17 +174,17 @@ export default function RevisionStep({ onComplete }) {
                                         <button
                                             type="button"
                                             className="btn btn-ghost"
-                                            onClick={() => setEditValue(prevAnswer || "")}
+                                            onClick={() => setValue(seed.answer || "")}
                                         >
                                             Reset to preset
                                         </button>
                                         <button
                                             type="button"
                                             className="btn btn-primary"
-                                            disabled={!editValue.trim() || !isValid}
+                                            disabled={!value.trim() || !isValid}
                                             onClick={handleSubmit}
                                         >
-                                            Save Revision
+                                            Submit
                                         </button>
                                     </div>
                                 </div>
@@ -198,7 +208,13 @@ export default function RevisionStep({ onComplete }) {
                             ].join(" ")}
                         >
                             <div className="flex-1 overflow-auto">
-                                <ChatBoxAI title="AI Coach" />
+                                <ChatBoxAI
+                                    title="AI Coach"
+                                    chatKey="trainingRevision"
+                                    uid={currentUser?.uid}
+                                    group={groupNumber}
+                                    firstMessage={getCoachPrompt(groupNumber)}
+                                />
                             </div>
                         </div>
                     </div>

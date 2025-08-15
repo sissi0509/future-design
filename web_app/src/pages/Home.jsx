@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
-import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 import { logClientError } from '../services/errorHandle/logClientError';
 import Header from '../components/Header';
@@ -76,14 +76,20 @@ export default function Home() {
     };
 
     const saveAnswers = async (uid, { type, answers, flagPath }) => {
-        await addDoc(collection(db, 'sessionInfo', uid, 'responses'), {
-            type,
-            ...answers,
-        });
-        // flip the progress flag (on the root doc)
-        await updateDoc(doc(db, 'sessionInfo', uid), { [flagPath]: true });
-    };
 
+        await setDoc(
+            doc(db, "sessionInfo", uid, "responses", type),
+            {
+                type,
+                ...answers,
+                submitted: true,
+                status: "final-submit",
+            },
+            { merge: true }
+        );
+
+        await updateDoc(doc(db, "sessionInfo", uid), { [flagPath]: true });
+    }
     //save then optimistically update local state via markComplete
     const saveAndComplete = async ({ type, flagPath, answers }) => {
         if (!currentUser?.uid) return;
