@@ -6,7 +6,7 @@ import { app } from "../../config/Firebase";
 
 // Initialize Gemini AI
 const ai = getAI(app, { backend: new GoogleAIBackend() });
-const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+export const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 
 // Async function to generate content
 export const AiCheck = async (prompt) => {

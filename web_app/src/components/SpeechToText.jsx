@@ -1,44 +1,45 @@
 import { useState } from 'react';
 
-export default function SpeechToTextButton({ onResult, className = '' }) {
+export function insertTextAt(textarea, currentValue, spokenText, onChange) {
+    if (!textarea) return;
+
+    textarea.focus();
+
+    const start = textarea.selectionStart ?? currentValue.length;
+    const end = textarea.selectionEnd ?? currentValue.length;
+
+    const before = currentValue.slice(0, start);
+    const after = currentValue.slice(end);
+
+    const newValue = before + spokenText + after;
+    onChange(newValue);
+
+    // place caret right after inserted text (after React updates DOM)
+    setTimeout(() => {
+        textarea.focus();
+        const caret = start + spokenText.length;
+        textarea.setSelectionRange(caret, caret);
+    }, 0);
+}
+
+export function SpeechToTextButton({ onResult, className = '' }) {
     const [isListening, setIsListening] = useState(false);
-    const [error, setError] = useState('');
 
     const handleClick = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) { alert("Speech recognition is not supported in this browser."); return; }
 
-        if (!SpeechRecognition) {
-            alert("Speech recognition is not supported in this browser.");
-            return;
-        }
+        const rec = new SpeechRecognition();
+        rec.lang = 'en-US';
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+        rec.onstart = () => setIsListening(true);
+        rec.onresult = (e) => { onResult(e.results[0][0].transcript); setIsListening(false); };
+        rec.onerror = () => { alert("Speech recognition failed. Please try again."); setIsListening(false); };
+        rec.onend = () => setIsListening(false);
 
-        recognition.onstart = () => {
-            setIsListening(true);
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            onResult(transcript);
-            setIsListening(false);
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error:", event.error);
-            alert("Speech recognition failed. Please try again.");
-            setError(event.error);
-            setIsListening(false);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
-
-        recognition.start();
+        rec.start();
     };
 
     return (

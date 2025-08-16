@@ -1,6 +1,6 @@
 // src/pages/training/StepPage.jsx
 import { useCallback } from "react";
-import { collection, addDoc, doc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, updateDoc, setDoc } from "firebase/firestore";
 import { useAuth } from "../User/AuthSetUp";
 import { db } from "../../config/Firebase";
 

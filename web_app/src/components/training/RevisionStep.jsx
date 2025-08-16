@@ -1,109 +1,46 @@
-// src/components/training/RevisionStep.jsx
-import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { useState } from "react";
 import { useAuth } from "../User/AuthSetUp";
 import { db } from "../../config/Firebase";
 import ChatBoxAI from "./ChatBoxAI";
 import TextQuestion from "../questions/TextQuestion";
 import { useAnswersRegistry } from "../../context/AnswersRegistry";
-import { getCoachPrompt } from "../../data/questions/training/aiCoachPrompts";
+
+
+import { useResizableWidth } from "../../hooks/useResizableWidth";
+import { useRevisionData } from "../../hooks/useRevisionData";
+import ResizableSidebar from "../ResizableSidebar";
+
+const MIN = 18 * 16;
+const MAX = 64 * 16;
 
 export default function RevisionStep({ onComplete }) {
     const { currentUser } = useAuth();
     const uid = currentUser?.uid;
-    const { set, remove } = useAnswersRegistry();
+    const registry = useAnswersRegistry();
 
-    const [collapsed, setCollapsed] = useState(false); // always start open
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [groupNumber, setGroupNumber] = useState(null)
+    // data hook
+    const { loading, error, groupNumber, seed, value, setValue } = useRevisionData({
+        uid,
+        db,
+        lsKey: uid ? `training-rev-${uid}` : null,
+        registry,
+        registryKey: "trainingRevision",
+    });
 
-    const [seed, setSeed] = useState({ question: "", answer: "", min: 30, max: 400 });
-    const [value, setValue] = useState("");
-    const [hydrated, setHydrated] = useState(false); // prevents “empty overwrite” on first render
+    // sidebar size
+    const min = MIN;
+    const max = MAX;
+    const { width, startResize } = useResizableWidth({
+        initial: 28 * 16,
+        min,
+        max,
+    });
 
-    const lsKey = uid ? `training-rev-${uid}` : null;   // localStorage key
-    const registryKey = "trainingRevision";              // AnswersRegistry key
+    const [collapsed, setCollapsed] = useState(false);
 
-    // Load once: seed + any prior draft (from responses doc), then prefer localStorage
-    useEffect(() => {
-        let cancelled = false;
-
-        (async () => {
-            if (!uid) { setLoading(false); return; }
-            setLoading(true);
-            setError("");
-
-            try {
-                const [rootSnap, respSnap] = await Promise.all([
-                    getDoc(doc(db, "sessionInfo", uid)),
-                    getDoc(doc(db, "sessionInfo", uid, "responses", "trainingRevision")),
-                ]);
-
-                const root = rootSnap.exists() ? rootSnap.data() : {};
-                const s = root?.progress?.training?.seed || {};
-                const resp = respSnap.exists() ? respSnap.data() : null;
-
-                const nextSeed = {
-                    question: String(s.question || ""),
-                    answer: String(s.answer || ""),
-                    min: Number.isFinite(s.minWords) ? s.minWords : 30,
-                    max: Number.isFinite(s.maxWords) ? s.maxWords : 400,
-                };
-
-                const respDraft = typeof resp?.revised === "string" ? resp.revised : null;
-
-                // priority: localStorage -> Firestore draft -> seed answer
-                const localStr = lsKey ? localStorage.getItem(lsKey) : null;
-                const initial = localStr !== null ? localStr : (respDraft ?? String(s.answer || ""));
-
-                if (cancelled) return;
-                const gn = Number(root?.groupNumber);
-                setGroupNumber(Number.isFinite(gn) ? gn : null);
-
-                setSeed(nextSeed);
-                setValue(initial);
-                setHydrated(true);
-            } catch (e) {
-                console.warn("Failed to load revision context:", e);
-                if (!cancelled) setError("Failed to load your previous revision.");
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-
-        return () => { cancelled = true; };
-    }, [uid, lsKey]);
-
-    // Save draft to localStorage AFTER hydration
-    useEffect(() => {
-        if (!lsKey || !hydrated) return;
-        localStorage.setItem(lsKey, value ?? "");
-    }, [lsKey, value, hydrated]);
-
-    // Register draft for logout flush AFTER hydration
-    useEffect(() => {
-        if (!uid || !hydrated) return;
-        const trimmed = (value || "").trim();
-        if (!trimmed) {
-            remove(registryKey);
-            return;
-        }
-        set(registryKey, {
-            type: "trainingRevision",
-            answers: {
-                presetQuestion: seed.question,
-                original: seed.answer,
-                revised: value,
-            },
-        });
-    }, [uid, hydrated, seed.question, seed.answer, value, set, remove]);
-
-    // Validation
     const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
     const isValid = wordCount >= seed.min && wordCount <= seed.max;
 
-    // Final submit: parent (StepPage) will write to Firestore + advance flow
     const handleSubmit = async () => {
         if (!uid || !isValid) return;
         try {
@@ -112,12 +49,10 @@ export default function RevisionStep({ onComplete }) {
                 original: seed.answer,
                 revised: value,
             });
-            // clean up local & registry so logout won’t flush again
-            if (lsKey) localStorage.removeItem(lsKey);
-            remove(registryKey);
-        } catch (e) {
-            console.warn("Failed to save revision (parent):", e);
-            setError("Failed to save. Please try again.");
+            if (uid) localStorage.removeItem(`training-rev-${uid}`);
+            registry.remove("trainingRevision");
+        } catch {
+
         }
     };
 
@@ -192,32 +127,24 @@ export default function RevisionStep({ onComplete }) {
                         </div>
                     </div>
 
-                    {/* RIGHT: AI Coach */}
-                    <div
-                        className={[
-                            "bg-base-200 transition-[width] duration-200 ease-in-out h-full relative",
-                            collapsed ? "w-0" : "w-[28rem]",
-                            collapsed ? "border-l-0" : "border-l",
-                        ].join(" ")}
-                        aria-hidden={collapsed}
+                    {/* RIGHT: AI Coach (presentational sidebar) */}
+                    <ResizableSidebar
+                        width={width}
+                        min={min}
+                        max={max}
+                        collapsed={collapsed}
+                        onResizeStart={startResize}
                     >
-                        <div
-                            className={[
-                                "absolute inset-0 flex flex-col transition-opacity duration-150",
-                                collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
-                            ].join(" ")}
-                        >
-                            <div className="flex-1 overflow-auto">
-                                <ChatBoxAI
-                                    title="AI Coach"
-                                    chatKey="trainingRevision"
-                                    uid={currentUser?.uid}
-                                    group={groupNumber}
-                                    firstMessage={getCoachPrompt(groupNumber)}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                        {groupNumber !== null && (
+                            <ChatBoxAI
+                                key={`ai-${uid}-g${groupNumber}`}
+                                title="AI Coach"
+                                registryKey="trainingAiConversation"
+                                uid={uid}
+                                group={groupNumber}
+                            />
+                        )}
+                    </ResizableSidebar>
                 </div>
             </div>
         </div>

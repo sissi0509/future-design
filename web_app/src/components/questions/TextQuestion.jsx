@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import ReadAloudButton from '../ReadAloudButton'
-import SpeechToTextButton from '../SpeechToText'
+import { insertTextAt, SpeechToTextButton } from '../SpeechToText'
 
 export default function TextQuestion({
     label,
@@ -15,24 +15,6 @@ export default function TextQuestion({
     const valid = wordCount >= minWords && wordCount <= maxWords;
     const speechText = label;
 
-    const handleSpeechResult = (spokenText) => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const before = value.slice(0, start);
-        const after = value.slice(end);
-
-        const newValue = before + spokenText + after;
-        onChange(newValue);
-
-        // Move cursor to just after inserted text
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + spokenText.length, start + spokenText.length);
-        }, 0);
-    };
     return (
         <div>
             <label className="block font-medium mb-1">
@@ -51,7 +33,9 @@ export default function TextQuestion({
                     placeholder={placeholder}
                 />
                 <div className="absolute right-2 bottom-2">
-                    <SpeechToTextButton onResult={handleSpeechResult} />
+                    <SpeechToTextButton onResult={(spoken) =>
+                        insertTextAt(textareaRef.current, value, spoken, onChange)
+                    } />
                 </div>
             </div>
             <div className={`text-sm mt-1 ${valid ? 'text-green-600' : 'text-red-500'
