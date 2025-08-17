@@ -137,7 +137,6 @@ export default function RevisionStep({ onComplete }) {
                     >
                         {groupNumber !== null && (
                             <ChatBoxAI
-                                key={`ai-${uid}-g${groupNumber}`}
                                 title="AI Coach"
                                 registryKey="trainingAiConversation"
                                 uid={uid}

@@ -8,7 +8,6 @@ export default function EmailLogin({ onClose }) {
   const [password, setPassword] = useState('');
 
   const handleEmailLogin = async () => {
-
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
@@ -16,43 +15,55 @@ export default function EmailLogin({ onClose }) {
       await sendLoginStatement(user.email);
       onClose();
     } catch (err) {
-      alert("Email login failed, check your email and password");
-      console.error("Email login failed:", err);
+      alert('Email login failed, check your email and password');
+      console.error('Email login failed:', err);
     }
   };
 
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      handleEmailLogin();
-    }}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleEmailLogin();
+      }}
+      className="card   w-full max-w-md  shadow-md bg-base-100 p-6 space-y-4"
     >
-      <div>
-        <label htmlFor="email">Email</label>
+
+
+      <fieldset className="fieldset space-y-2">
+        <label htmlFor="email" className="label text-lg font-medium ">
+          Email
+        </label>
         <input
-          className="input"
+          id="email"
           type="email"
-          id='email'
-          placeholder="Email"
+          placeholder="Enter your email"
+          className="input input-bordered w-full"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-      </div>
-      <div>
-        <label htmlFor="password">Password</label>
+
+        <label htmlFor="password" className="label text-lg font-medium ">
+          Password
+        </label>
         <input
-          className="input"
+          id="password"
           type="password"
-          id='password'
-          placeholder="Password"
+          placeholder="Enter your password"
+          className="input input-bordered w-full"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+      </fieldset>
+
+      <div className="flex flex-col gap-2 mt-4">
+        <button className="btn btn-primary w-full" type="submit">
+          Login
+        </button>
+        <button className="btn btn-ghost w-full" type="button" onClick={onClose}>
+          Cancel
+        </button>
       </div>
-
-      <button className="btn" type="submit">Login</button>
-      <button className="btn" type="button" onClick={onClose}>Cancel</button>
     </form>
-
   );
 }

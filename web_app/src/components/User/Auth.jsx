@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from './AuthSetUp';
 import EmailLogin from './EmailLogin';
-import IdLogin from './IdLogin';
-import Register from './Register';
+// import IdLogin from './IdLogin';
+// import Register from './Register';
 import Logout from './Logout';
 
 export default function Auth() {
@@ -13,7 +13,7 @@ export default function Auth() {
         <div>
             {!currentUser ? (
                 <>
-                    <button className="btn" onClick={() => setActiveForm('EmailLogin')}>Email Login</button>
+                    <button className="btn" onClick={() => setActiveForm('EmailLogin')}>Login</button>
                     {/* <button className="btn" onClick={() => setActiveForm('IDlogin')}>IDLogin</button>
                     <button className="btn" onClick={() => setActiveForm('register')}>Register</button> */}
                 </>
@@ -25,7 +25,7 @@ export default function Auth() {
             )}
 
             {activeForm === 'EmailLogin' && (
-                <div>
+                <div className="flex items-center justify-center">
                     <EmailLogin onClose={() => setActiveForm(null)} />
                 </div>
             )}
