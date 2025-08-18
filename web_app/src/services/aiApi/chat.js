@@ -1,23 +1,55 @@
-import { model } from './simpleGemini'
+import { model } from "./simpleGemini";
 
+// our app messages: { role: "you" | "ai", text: string }
+function toGeminiHistory(history = []) {
+    return history.map((m) => ({
+        role: m.role === "you" ? "user" : "model",
+        parts: [{ text: m.text ?? "" }],
+    }));
+}
 
-// One session = multi-turn memory. Reuse this per ChatBox instance.
-export function createChatSession() {
-    const chat = model.startChat(); // no history passed; session remembers turns
+export function createChatSession(history = []) {
+    const geminiHistory = toGeminiHistory(history);
+
+    let chat;
+    let usedFallback = false;
+    let readyResolve;
+    const readyPromise = new Promise((r) => (readyResolve = r));
+
+    try {
+        chat = model.startChat(geminiHistory.length ? { history: geminiHistory } : {});
+        readyResolve(); // immediately ready
+    } catch {
+        // Fallback: start empty and manually prime BOTH roles (User + Assistant)
+        chat = model.startChat();
+        usedFallback = true;
+
+        (async () => {
+            try {
+                if (Array.isArray(history) && history.length) {
+                    const transcript = history
+                        .map((m) => (m.role === "you" ? `User: ${m.text}` : `Assistant: ${m.text}`))
+                        .join("\n");
+
+                    if (transcript.trim()) {
+                        // Send a primer message to the AI
+                        await chat.sendMessage(
+                            `You are resuming a conversation.\nTranscript so far:\n${transcript}\n(End transcript)\nReply "OK".`
+                        );
+                    }
+                }
+            } finally {
+                readyResolve(); // mark ready even if primer fails
+            }
+        })();
+    }
+
     return {
         async send(userText) {
+            await readyPromise; // ensure primer finished
             const res = await chat.sendMessage(userText);
-            // SDKs return slightly different shapes; guard both:
-            if (res?.response?.text) return res.response.text();
-            if (typeof res?.text === "function") return res.text();
-            return ""; // fallback
+            return res.response.text();
         },
-        // Optional streaming usage:
-        async stream(userText, onToken) {
-            const stream = await chat.sendMessageStream(userText);
-            for await (const chunk of stream.stream) {
-                onToken(chunk.text());
-            }
-        },
+        ready: () => readyPromise,
     };
 }

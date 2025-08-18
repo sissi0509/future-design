@@ -57,7 +57,7 @@ export default function Training({ onComplete }) {
                 canSubmit={canSubmit}
                 onSubmit={() => {
                     if (!canSubmit) return;
-                    onComplete?.(); // marks progress.training.trainingCompleted
+                    onComplete?.(); // marks progress.training.trainingCompleted true
                 }}
             />
         );

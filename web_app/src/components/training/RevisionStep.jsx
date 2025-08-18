@@ -6,8 +6,8 @@ import TextQuestion from "../questions/TextQuestion";
 import { useAnswersRegistry } from "../../context/AnswersRegistry";
 
 
-import { useResizableWidth } from "../../hooks/useResizableWidth";
-import { useRevisionData } from "../../hooks/useRevisionData";
+import { useResizableWidth } from "./revisionSetup/useResizableWidth";
+import { useRevisionData } from "./revisionSetup/useRevisionData";
 import ResizableSidebar from "../ResizableSidebar";
 
 const MIN = 18 * 16;
