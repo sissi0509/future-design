@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { getCoachPrompt } from "../../data/questions/training/aiCoachPrompts";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
-import { shortTime } from "./chatboxSetup/chatUtils";
 
 export default function ChatBoxAI({
     title = "AI Coach",
@@ -70,13 +69,13 @@ export default function ChatBoxAI({
                                     ) : (
                                         <div>
                                             <textarea
-                                                className="textarea textarea-bordered w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
+                                                className="textarea w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
                                                 value={editDraft}
                                                 onChange={(e) => setEditDraft(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEditAndResend_NewBranch(); }
-                                                    if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                                                }}
+                                                // onKeyDown={(e) => {
+                                                //     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEditAndResend_NewBranch(); }
+                                                //     if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+                                                // }}
                                                 autoFocus
                                             />
                                             <div className="mt-3 flex justify-end gap-2">
@@ -87,34 +86,45 @@ export default function ChatBoxAI({
                                     )}
                                 </div>
 
-                                {/* Edit button: bottom-right outside the bubble */}
-                                {isYou && !isEditing && (
-                                    <button
-                                        type="button"
-                                        title="Edit & re-ask (creates a new branch)"
-                                        onClick={() => startEdit(i)}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-3 right-0 btn btn-ghost btn-xs z-10"
+                                {!isEditing && (
+                                    <div
+                                        className={[
+                                            "mt-1 flex items-center gap-2 text-xs text-base-content/60",
+                                            isYou ? "justify-end pr-1" : "justify-start pl-1",
+                                            "max-w-[85%] opacity-0 group-hover:opacity-100 transition-opacity",
+                                        ].join(" ")}
                                     >
-                                        ✏️ Edit
-                                    </button>
-                                )}
-
-                                {/* Numeric branch pills (1..N) — hidden while any edit is active */}
-                                {editingIndex === null && options.length > 1 && (
-                                    <div className="mt-3 flex items-center gap-1">
-                                        {options.map((id, idx) => (
+                                        {/* Edit (only for your messages) */}
+                                        {isYou && (
                                             <button
-                                                key={id}
                                                 type="button"
-                                                onClick={() => switchBranch(id)}
-                                                className={`btn btn-xs ${idx === activeOptionIdx ? "btn-primary" : "btn-outline"}`}
-                                                title={`${idx + 1} • ${shortTime((branches.find((b) => b.id === id) || {}).createdAt)}`}
+                                                title="Edit & re-ask (creates a new branch)"
+                                                onClick={() => startEdit(i)}
+                                                className="btn btn-ghost btn-xs"
                                             >
-                                                {idx + 1}
+                                                ✏️ Edit
                                             </button>
-                                        ))}
+                                        )}
+
+                                        {/* Numeric branch options: 1..N */}
+                                        {options.length > 1 && (
+                                            <div className="flex items-center gap-1">
+                                                {options.map((id, idx) => (
+                                                    <button
+                                                        key={id}
+                                                        type="button"
+                                                        onClick={() => switchBranch(id)}
+                                                        className={`btn btn-xs ${idx === activeOptionIdx ? "btn-primary" : "btn-outline"}`}
+                                                    >
+                                                        {idx + 1}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
+
+
                             </div>
                         </div>
                     );
