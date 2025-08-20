@@ -1,3 +1,4 @@
+// seedUsers.js
 const admin = require("firebase-admin");
 const users = require("./users.json");
 const serviceAccount = require("./serviceAccountKey.json");
@@ -19,35 +20,44 @@ async function upsertAuthUser({ email, password }) {
     }
 }
 
+// drop undefineds so Firestore won't complain
+function stripUndefined(obj) {
+    if (obj == null || typeof obj !== "object") return obj;
+    if (Array.isArray(obj)) return obj.map(stripUndefined);
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+        if (v === undefined) continue;
+        out[k] = typeof v === "object" ? stripUndefined(v) : v;
+    }
+    return out;
+}
+
 async function ensureMinimalSessionInfo({ uid, email, groupNumber, trainingSeed }) {
     const ref = db.collection("sessionInfo").doc(uid);
     const snap = await ref.get();
 
-    const seed = trainingSeed || {};
-    const patch = {
+    // assume trainingSeed already has the final structure you want
+    // {
+    //   expect: { prompt: "...", answers: ["...", "...", "...", "..."] },
+    //   avoid:  { prompt: "...", answers: ["...", "...", "...", "..."] },
+    //   advice: { prompt: "...",  answer:  "..." }
+    // }
+    const patch = stripUndefined({
         uid,
         email,
         groupNumber,
         progress: {
             training: {
-                // Preset “previous info” used by Revision
-                seed: {
-                    question: seed.question || null,
-                    answer: seed.answer || "",
-                    minWords: Number.isFinite(seed.minWords) ? seed.minWords : 30,
-                    maxWords: Number.isFinite(seed.maxWords) ? seed.maxWords : 400,
-                },
-                evaluationCompleted: false,
-                revisionCompleted: false,
-            },
-        },
-    };
+                seed: trainingSeed
+            }
+        }
+    });
+
+    await ref.set(patch, { merge: true });
 
     if (!snap.exists) {
-        await ref.set(patch, { merge: true });
-        console.log(`sessionInfo created for ${email}`);
+        console.log(`✅ sessionInfo created for ${email}`);
     } else {
-        await ref.set(patch, { merge: true });
         console.log(`🔁 sessionInfo updated for ${email} (seed & training flags)`);
     }
 }
@@ -67,6 +77,7 @@ async function run() {
         }
     }
     console.log("All users processed!");
+    process.exit(0);
 }
 
 run();

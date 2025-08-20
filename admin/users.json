@@ -4,10 +4,28 @@
         "password": "usedfortesting123",
         "groupNumber": 1,
         "trainingSeed": {
-            "question": "Briefly describe your current study workflow.",
-            "answer": "user1 answer is that:....",
-            "minWords": 10,
-            "maxWords": 400
+            "expect": {
+                "prompt": "What you expect you'll be like and doing in 5 years.",
+                "answers": [
+                    "Working as a data analyst at a midsize company, comfortable with SQL, Python, and dashboards.",
+                    "Finishing a part-time master’s in data science and presenting a capstone project.",
+                    "Maintaining a small portfolio of open-source analysis notebooks and blog posts.",
+                    "Living in a new city with a steady routine for exercise and cooking at home."
+                ]
+            },
+            "avoid": {
+                "prompt": "What you do NOT want to be like or be doing in 5 years.",
+                "answers": [
+                    "Stuck in a role with no learning or mentoring.",
+                    "Burned out from constant overtime and weekend work.",
+                    "Worried about debt because I didn’t plan finances.",
+                    "Procrastinating on health and skipping regular checkups."
+                ]
+            },
+            "advice": {
+                "prompt": "Most influential advice about the job you want.",
+                "answer": "“Ship small things consistently and learn in public. Momentum beats perfection.”"
+            }
         }
     },
     {
@@ -15,10 +33,28 @@
         "password": "usedfortesting123",
         "groupNumber": 2,
         "trainingSeed": {
-            "question": "Briefly describe your current study workflow.",
-            "answer": "user2 answer is that:....",
-            "minWords": 10,
-            "maxWords": 400
+            "expect": {
+                "prompt": "What you expect you'll be like and doing in 5 years.",
+                "answers": [
+                    "Certified high-school teacher with strong classroom routines and a supportive environment.",
+                    "Advising a student club and helping with college application workshops.",
+                    "Working toward a master’s in education with a focus on literacy.",
+                    "Traveling during summers and keeping a balanced schedule during the school year."
+                ]
+            },
+            "avoid": {
+                "prompt": "What you do NOT want to be like or be doing in 5 years.",
+                "answers": [
+                    "Feeling cynical or disengaged from students.",
+                    "Relying only on worksheets and not adapting lessons.",
+                    "Financial instability due to poor budgeting.",
+                    "Neglecting sleep and exercise during busy terms."
+                ]
+            },
+            "advice": {
+                "prompt": "Most influential advice about the job you want.",
+                "answer": "“Relationships first, content second. Students learn best when they feel seen.”"
+            }
         }
     },
     {
@@ -26,10 +62,28 @@
         "password": "usedfortesting123",
         "groupNumber": 3,
         "trainingSeed": {
-            "question": "Briefly describe your current study workflow.",
-            "answer": "user3 answer is that:....",
-            "minWords": 10,
-            "maxWords": 400
+            "expect": {
+                "prompt": "What you expect you'll be like and doing in 5 years.",
+                "answers": [
+                    "Software engineer leading a small feature team on a consumer app.",
+                    "Comfortable designing APIs and reviewing pull requests with empathy.",
+                    "Contributing to an open-source library a few times per year.",
+                    "Financially stable, mentoring interns, and running 5Ks regularly."
+                ]
+            },
+            "avoid": {
+                "prompt": "What you do NOT want to be like or be doing in 5 years.",
+                "answers": [
+                    "Job-hopping without purpose or growth.",
+                    "Working in a culture of micromanagement with unclear priorities.",
+                    "Letting skills stagnate and avoiding code reviews.",
+                    "Constantly on-call without boundaries."
+                ]
+            },
+            "advice": {
+                "prompt": "Most influential advice about the job you want.",
+                "answer": "“Pick problems, not tools. Communicate early, and write things down.”"
+            }
         }
     }
 ]

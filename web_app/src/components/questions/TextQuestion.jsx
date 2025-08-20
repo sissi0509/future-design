@@ -17,11 +17,9 @@ export default function TextQuestion({
 
     return (
         <div>
-            <label className="block font-medium mb-1">
+            <label className="block font-medium mb-6 whitespace-pre-line">
                 {label}
                 <ReadAloudButton text={speechText} />
-
-
             </label>
             <div className="relative w-full">
                 <textarea
@@ -29,7 +27,7 @@ export default function TextQuestion({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     className="textarea w-full"
-                    rows={4}
+                    rows={8}
                     placeholder={placeholder}
                 />
                 <div className="absolute right-2 bottom-2">

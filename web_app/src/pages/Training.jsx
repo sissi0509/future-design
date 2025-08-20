@@ -122,7 +122,7 @@ export default function Training({ group, onComplete }) {
             </div>
 
             {/* Page renders inputs, writes { isValid } into its draft, and reports validity here */}
-            <Comp onValidChange={handleCurrentValidChange} />
+            <Comp onValidChange={handleCurrentValidChange} uid={uid} />
 
             {/* If you re-enable AI later, Training decides here:
       {ai && uid && (
