@@ -51,7 +51,7 @@ export default function GoalPage({ onValidChange, uid }) {
                 uid={uid}
                 question={goalQuestions}
             />
-            <div className="rounded-lg border bg-base-100 p-4">
+            <div className="rounded-lg border bg-base-100 p-4 mt-8">
                 <h3 className="font-semibold mb-2">Your previous responses:</h3>
 
                 {loading ? (
