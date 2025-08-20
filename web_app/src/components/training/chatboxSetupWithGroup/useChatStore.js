@@ -7,6 +7,7 @@ export function useChatStore({
     storageKey,
     opener,
     registryKey,
+    group,
     maxMessagesToSave,
 }) {
     const { set: regSet, remove: regRemove } = useAnswersRegistry();
@@ -262,23 +263,18 @@ export function useChatStore({
         regSet(registryKey, {
             type: registryKey,
             answers: {
-                activeBranch: activeId ?? null,
+                group,
+                activeBranch: activeId,
                 branches: branches.map((b) => ({
                     id: b.id,
-                    title: b.title ?? null,
-                    createdAt: b.createdAt ?? null, // or server-side later if you want
-                    messages: (b.messages ?? []).slice(-maxMessagesToSave).map((m) => ({
-                        role: m.role,                 // "you" | "ai"
-                        text: m.text ?? "",           // ensure string
-                    })),
-                    ...(b.parentId ? { parentId: b.parentId } : {}),
-                    ...(typeof b.forkedFromIndex === "number"
-                        ? { forkedFromIndex: b.forkedFromIndex }
-                        : {}),
+                    title: b.title,
+                    parentId: b.parentId,
+                    forkedFromIndex: b.forkedFromIndex,
+                    messages: (b.messages || []).slice(-maxMessagesToSave),
                 })),
             },
         });
-    }, [branches, activeId, maxMessagesToSave, regSet, regRemove, registryKey]);
+    }, [branches, activeId, group, maxMessagesToSave, regSet, regRemove, registryKey]);
 
     // Options for a message: which branches share this history up to & including message i?
     const optionsForMessage = (i, currentId) => {

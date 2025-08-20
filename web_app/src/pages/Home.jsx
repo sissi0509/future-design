@@ -8,7 +8,7 @@ import Auth from '../components/User/Auth'
 
 import Welcome from './Welcome';
 import Consent from './Consent';
-import PreTest from './PreTest';
+// import PreTest from './PreTest';
 import Training from './Training';
 import PostTest from './PostTest';
 import Survey from './Survey';
@@ -49,6 +49,8 @@ export default function Home() {
         };
         load();
     }, [currentUser]);
+
+    const groupNumber = Number(data?.groupNumber ?? 3);
 
     const markComplete = async (flagPath) => {
         if (!currentUser) return;
@@ -121,20 +123,23 @@ export default function Home() {
             render: () => <Consent onComplete={() => markComplete('progress.consentCompleted')} />
         },
 
-        {
-            path: 'progress.preTestCompleted',
-            render: () => (
-                <PreTest
-                    onSubmit={(answers) =>
-                        saveAndComplete({ type: 'preTest', flagPath: 'progress.preTestCompleted', answers })
-                    }
-                />
-            )
-        },
+        // {
+        //     path: 'progress.preTestCompleted',
+        //     render: () => (
+        //         <PreTest
+        //             onSubmit={(answers) =>
+        //                 saveAndComplete({ type: 'preTest', flagPath: 'progress.preTestCompleted', answers })
+        //             }
+        //         />
+        //     )
+        // },
 
         {
             path: 'progress.training.trainingCompleted',
-            render: () => <Training onComplete={() => markComplete('progress.training.trainingCompleted')} />
+            render: () => <Training
+                group={groupNumber}
+                onComplete={() => markComplete('progress.training.trainingCompleted')}
+            />
         },
 
         {
