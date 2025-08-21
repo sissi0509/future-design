@@ -5,6 +5,7 @@ const instructionContent = {
         "Questions about the future often do not have any single, clear-cut solution. However, there are some general considerations which are nearly always of use to us, and which we should remember to apply whenever we are faced with any question with inherent ambiguity and uncertainty (Wilson, 1963)."
     ],
     table: {
+        title: "Techniques for Thinking About the Future",
         // 3 rows × 2 columns; each cell has a title + text
         rows: [
             [

@@ -13,15 +13,23 @@ export default function TextQuestion({
     const textareaRef = useRef(null);
     const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
     const valid = wordCount >= minWords && wordCount <= maxWords;
-    const speechText = label;
 
+
+    const labelParts = Array.isArray(label) ? label : [label];
+    const speechText = labelParts.join("\n\n");
     return (
         <div>
-            <label className="block font-medium mb-6 whitespace-pre-line">
-                {label}
+
+            <div className="space-y-3">
+                {labelParts.map((part, i) => (
+                    <p key={i} className="whitespace-pre-line leading-relaxed text-justify">
+                        {part}
+                    </p>
+                ))}
                 <ReadAloudButton text={speechText} />
-            </label>
-            <div className="relative w-full">
+            </div>
+
+            <div className="relative w-full mt-4">
                 <textarea
                     ref={textareaRef}
                     value={value}

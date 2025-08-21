@@ -10,11 +10,11 @@ export default function QRCode() {
 
             <div className="mt-6">
                 <p>scan this QR code:</p>
-                <img
+                {/* <img
                     src={``}
                     alt="Prolific Completion QR"
                     className="mx-auto"
-                />
+                /> */}
             </div>
         </div>
     );

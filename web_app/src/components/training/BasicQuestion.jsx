@@ -45,7 +45,7 @@ export default function BasicQuestion({ onValidChange, registryKey, uid, questio
         if (!uid) return;
         const t = setTimeout(() => {
             regSet(registryKey, {
-                type: registryKey,
+                type: { registryKey },
                 answers: {
                     text: value ?? "",
                     isValid,
@@ -64,7 +64,7 @@ export default function BasicQuestion({ onValidChange, registryKey, uid, questio
 
     return (
         <div className="space-y-4">
-            <h2 className="text-xl font-semibold">{question.title}</h2>
+            {/* <h2 className="text-xl font-semibold">{question.title}</h2> */}
             <TextQuestion
                 label={question.label}
                 value={value}

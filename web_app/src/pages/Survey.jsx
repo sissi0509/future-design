@@ -25,7 +25,7 @@ export default function Survey({ onSubmit }) {
     return (
         <Questionnaire
             questions={surveyQuestions}
-            title="Pre-Test"
+            title="Survey"
             autosaveKey={uid ? `survey-${uid}` : undefined}
             submitting={submitting}
             onChangeAnswers={(answers) => set(key, { type: "survey", answers })}

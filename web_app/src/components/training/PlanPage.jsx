@@ -1,11 +1,15 @@
-export default function PlanPage({ onSubmit, onNext, withAI }) {
-    return (
-        <div className="space-y-3">
-            <h2 className="text-lg font-semibold">PlanPage</h2>
+import planQuestions from "../../data/questions/training/plan";
+import BasicQuestion from './BasicQuestion'
 
-            <div className="flex gap-2">
-                <button className="btn" onClick={() => onSubmit({})}>Continue</button>
-            </div>
-        </div>
+export default function PlanPage({ onValidChange, uid }) {
+
+
+    return (
+        <BasicQuestion
+            onValidChange={onValidChange}
+            registryKey="training-plan"
+            uid={uid}
+            question={planQuestions}
+        />
     );
 }

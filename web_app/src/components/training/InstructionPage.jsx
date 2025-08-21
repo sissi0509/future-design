@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import instructionContent from "../../data/questions/training/instruction";
 
 export default function InstructionPage({ onValidChange, uid }) {

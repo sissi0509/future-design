@@ -28,12 +28,12 @@ function readDraft(uid, key) {
 function buildSteps(group) {
     const g = [1, 2, 3].includes(group) ? group : 2;
     const core = [
-        { key: "goal", Comp: GoalPage, ai: g === 3 },
-        { key: "instruction", Comp: InstructionPage, ai: g === 3 },
-        { key: "strategy", Comp: StrategyPage, ai: g === 3 },
-        { key: "plan", Comp: PlanPage, ai: g === 3 },
+        { key: "training-goal", Comp: GoalPage, ai: g === 3 },
+        { key: "training-instruction", Comp: InstructionPage, ai: g === 3 },
+        { key: "training-strategy", Comp: StrategyPage, ai: g === 3 },
+        { key: "training-plan", Comp: PlanPage, ai: g === 3 },
     ];
-    return g === 1 ? core : [{ key: "warmup", Comp: WarmupPage, ai: false }, ...core];
+    return g === 1 ? core : [{ key: "training-warmup", Comp: WarmupPage, ai: false }, ...core];
 }
 
 export default function Training({ group, onComplete }) {
@@ -83,10 +83,10 @@ export default function Training({ group, onComplete }) {
             for (const s of steps) {
                 const draft = readDraft(uid, s.key);
                 await setDoc(
-                    doc(db, "sessionInfo", uid, "responses", `training-${s.key}`),
+                    doc(db, "sessionInfo", uid, "responses", s.key),
                     {
-                        type: `training-${s.key}`,
-                        answers: draft || {},
+                        type: s.key,
+                        ...draft,
                         submitted: true,
                         status: "final-submit",
                         updatedAt: serverTimestamp(),
