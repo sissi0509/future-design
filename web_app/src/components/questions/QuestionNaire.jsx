@@ -127,7 +127,7 @@ export default function Questionnaire({
     }
 
     return (
-        <form onSubmit={submit} className="max-w-xl mx-auto p-6 space-y-6">
+        <form onSubmit={submit} className=" w-full max-w-3xl mx-auto p-6 space-y-6">
             <div className="flex items-start justify-between">
                 <h1 className="text-2xl font-bold">
                     {title}
@@ -160,6 +160,7 @@ export default function Questionnaire({
                     onChange={(val) => setValue(current.key, val)}
                     kind={current.kind || "single"}
                     qkey={current.key}
+                    questions={current.questions ? current.questions : []}
                 />
 
             )}

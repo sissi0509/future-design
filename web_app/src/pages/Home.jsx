@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
-import { collection, addDoc, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 import { logClientError } from '../services/errorHandle/logClientError';
 import Header from '../components/Header';
@@ -8,7 +8,6 @@ import Auth from '../components/User/Auth'
 
 import Welcome from './Welcome';
 import Consent from './Consent';
-// import PreTest from './PreTest';
 import Training from './Training';
 import PostTest from './PostTest';
 import Survey from './Survey';
@@ -122,17 +121,6 @@ export default function Home() {
             path: 'progress.consentCompleted',
             render: () => <Consent onComplete={() => markComplete('progress.consentCompleted')} />
         },
-
-        // {
-        //     path: 'progress.preTestCompleted',
-        //     render: () => (
-        //         <PreTest
-        //             onSubmit={(answers) =>
-        //                 saveAndComplete({ type: 'preTest', flagPath: 'progress.preTestCompleted', answers })
-        //             }
-        //         />
-        //     )
-        // },
 
         {
             path: 'progress.training.trainingCompleted',

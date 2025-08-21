@@ -1,11 +1,11 @@
 import ReadAloudButton from '../ReadAloudButton'
 
 const DEFAULT_LIKERT = [
-    "Strongly disagree",
-    "Disagree",
-    "Neutral",
-    "Agree",
-    "Strongly agree",
+    'Strongly agree',
+    'Agree',
+    'Neutral',
+    'Disagree',
+    'Strongly disagree',
 ];
 
 export default function MultipleChoice({
@@ -17,13 +17,26 @@ export default function MultipleChoice({
     kind = 'single',
     minSelect = 1,
     maxSelect = Infinity,
+    questions,
 }) {
     const groupName = qkey;
     const opts = (kind === "likert" && (!options || options.length === 0))
         ? DEFAULT_LIKERT
         : (options || []);
 
-    const speechText = `${label}. Options are: ${opts.join(', ')}`;
+
+
+    const labelParts = Array.isArray(label) ? label : [label];
+    const labelText = labelParts.join("\n\n");
+    const speechText =
+        kind === 'likert-multi' && questions.length
+            ? `${labelText}. ` +
+            questions
+                .map((q, i) => {
+                    return `${i + 1}: ${q.label}. Options are: ${q.options.join(', ')}`;
+                })
+                .join(' ')
+            : `${labelText}. Options are: ${opts.join(', ')}`;
 
     const toggleMulti = (opt) => {
         const current = Array.isArray(value) ? value : [];
@@ -37,12 +50,13 @@ export default function MultipleChoice({
         }
     };
 
+
     return (
         <div>
-            <label className="block font-medium mb-2">
+            <div className="block font-medium mb-2">
                 {label}
                 <ReadAloudButton text={speechText} />
-            </label>
+            </div>
 
             {kind === "likert" && (
                 <div className="flex flex-wrap gap-3">
@@ -58,6 +72,37 @@ export default function MultipleChoice({
                             <span className="text-sm">{opt}</span>
                         </label>
                     ))}
+                </div>
+            )}
+
+            {kind === 'likert-multi' && Array.isArray(questions) && (
+                <div className="space-y-5">
+                    {questions.map((q, i) => {
+                        const rowKey = q.key ?? String(i); // derive a stable key if none provided
+                        const name = `${groupName}__${rowKey}`;
+                        const current =
+                            value && typeof value === 'object' ? value[rowKey] : '';
+
+                        return (
+                            <div key={rowKey} className="flex flex-wrap items-center gap-y-3">
+                                <div className="min-w-[12rem] font-medium">{q.label}</div>
+                                <div className='flex flex-wrap gap-x-6 gap-y-2'>
+                                    {q.options.map((opt) => (
+                                        <label key={opt} className="inline-flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                name={name}
+                                                value={opt}
+                                                checked={current === opt}
+                                                onChange={() => onChange({ ...(value || {}), [rowKey]: opt })}
+                                            />
+                                            <span className="text-sm">{opt}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
