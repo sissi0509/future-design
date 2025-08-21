@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function ResizableSidebar({
     width,
     min,
@@ -9,7 +11,7 @@ export default function ResizableSidebar({
     return (
         <div
             className={[
-                "bg-base-200 h-full relative",
+                "group bg-base-200 h-full relative",
                 collapsed ? "border-l-0" : "border-l",
             ].join(" ")}
             style={{
@@ -19,35 +21,84 @@ export default function ResizableSidebar({
             }}
             aria-hidden={collapsed}
         >
+            {/* Invisible drag rail (no visuals) */}
             {!collapsed && (
-                <button
-                    type="button"
-                    aria-label="Resize"
-                    onMouseDown={onResizeStart}
-                    onTouchStart={onResizeStart}
-                    title="Drag to resize"
-                    className="absolute left-0 bottom-0 z-30 w-6 h-6 grid place-items-center
-                     rounded-tr bg-base-300/90 hover:bg-base-300 shadow-sm ring-1 ring-base-content/20"
-                    style={{ cursor: "ew-resize", touchAction: "none" }}
-                >
-                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-base-content/70">
-                        <path d="M8 5l-5 7 5 7M16 5l5 7-5 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </button>
+                <>
+                    <div
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label="Resize"
+                        onMouseDown={onResizeStart}
+                        onTouchStart={onResizeStart}
+                        className="absolute left-0 top-0 h-full w-4 z-30 cursor-ew-resize select-none"
+                        style={{ touchAction: "none", background: "transparent" }}
+                    />
+
+                    {/* Optional: very subtle 1px hairline hint on hover (keeps clicks for content) */}
+                    <div
+                        className="absolute left-0 top-0 h-full w-px bg-base-content/10
+                       opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        aria-hidden
+                    />
+                </>
             )}
 
-            {/* Lower z-index so the handle sits on top */}
+            {/* Content */}
             <div
                 className={[
-                    "absolute inset-0 z-10 flex flex-col",
+                    "absolute inset-0 z-10 flex flex-col transition-opacity duration-150",
                     collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
-                    "transition-opacity duration-150",
+                    // tiny padding so the invisible rail doesn't cover text right at the edge
+                    !collapsed ? "pl-1" : "",
                 ].join(" ")}
             >
-                <div className="flex-1 overflow-auto">
-                    {children}
-                </div>
+                <div className="flex-1 overflow-auto">{children}</div>
             </div>
         </div>
     );
+}
+
+/**
+ * Simple horizontal resize (bottom-left/left-edge handle).
+ * Returns width, limits, and a startResize handler.
+ */
+export function useResizableWidth({
+    initial = 28 * 16, // 28rem
+    min = 18 * 16,     // 18rem
+    max = 64 * 16,     // 64rem 
+} = {}) {
+    const [width, setWidth] = useState(initial);
+
+    const getX = (ev) =>
+        ev?.touches && ev.touches[0] ? ev.touches[0].clientX : ev.clientX;
+
+    const startResize = (e) => {
+        e.preventDefault();
+        const startX = getX(e);
+        const startW = width;
+
+        const move = (ev) => {
+            const dx = startX - getX(ev);
+            let next = startW + dx;
+            if (next < min) next = min;
+            if (next > max) next = max;
+            setWidth(next);
+        };
+
+        const end = () => {
+            window.removeEventListener("mousemove", move);
+            window.removeEventListener("mouseup", end);
+            window.removeEventListener("touchmove", move);
+            window.removeEventListener("touchend", end);
+            document.body.classList.remove("select-none");
+        };
+
+        document.body.classList.add("select-none");
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", end);
+        window.addEventListener("touchmove", move, { passive: false });
+        window.addEventListener("touchend", end);
+    };
+
+    return { width, startResize };
 }

@@ -1,15 +1,19 @@
+// src/pages/Training.jsx (or your current path)
 import { useEffect, useMemo, useState } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/Firebase";
 import { useAuth } from "../components/User/AuthSetUp";
 import { logClientError } from "../services/errorHandle/logClientError";
+import { useAnswersRegistry } from "../context/AnswersRegistry"
 
 import WarmupPage from "../components/training/WarmupPage";
 import GoalPage from "../components/training/GoalPage";
 import InstructionPage from "../components/training/InstructionPage";
 import StrategyPage from "../components/training/StrategyPage";
 import PlanPage from "../components/training/PlanPage";
-// import ChatBoxAI from "../components/training/ChatBoxAI";
+
+import ChatBoxAI from "../components/training/ChatBoxAI";
+import ResizableSidebar, { useResizableWidth } from "../components/ResizableSidebar";
 
 // --- helpers to read drafts each page writes ---
 function storageKey(uid, key) {
@@ -24,7 +28,7 @@ function readDraft(uid, key) {
     }
 }
 
-// Build ordered steps for the given group (AI flag kept if you later re-enable ChatBoxAI)
+// Build ordered steps for the given group
 function buildSteps(group) {
     const g = [1, 2, 3].includes(group) ? group : 2;
     const core = [
@@ -36,6 +40,9 @@ function buildSteps(group) {
     return g === 1 ? core : [{ key: "training-warmup", Comp: WarmupPage, ai: false }, ...core];
 }
 
+const MIN = 18 * 16;
+const MAX = 64 * 16;
+
 export default function Training({ group, onComplete }) {
     const { currentUser } = useAuth();
     const uid = currentUser?.uid;
@@ -45,7 +52,7 @@ export default function Training({ group, onComplete }) {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
-    // validity map across all steps, e.g. { warmup: true, goal: false, ... }
+    // validity map across all steps, e.g. { "training-warmup": true, ... }
     const [validByKey, setValidByKey] = useState({});
 
     // seed validity map from localStorage whenever user/steps change
@@ -64,7 +71,7 @@ export default function Training({ group, onComplete }) {
     const goPrev = () => setCurrentIdx((i) => Math.max(0, i - 1));
     const goNext = () => setCurrentIdx((i) => Math.min(steps.length - 1, i + 1));
 
-    const { key: stepKey, Comp /*, ai*/ } = steps[currentIdx];
+    const { key: stepKey, Comp, ai } = steps[currentIdx];
 
     // Combine live validity (for current step) with seeded values (for others)
     const allValid = steps.every((s) => validByKey[s.key] === true);
@@ -76,18 +83,40 @@ export default function Training({ group, onComplete }) {
         );
     };
 
+    // --- AI sidebar state (always set up; only rendered when ai && group===3 && uid) ---
+    const [collapsed, setCollapsed] = useState(false);
+    const { width, startResize } = useResizableWidth({
+        initial: 28 * 16,
+        min: MIN,
+        max: MAX,
+    });
+    const aiEnabled = !!uid && ai === true; // only for group 3 steps (except warmup per buildSteps)
+
+    const { remove: regRemove } = useAnswersRegistry();
     const handleFinalSubmit = async () => {
         if (!isLast || !allValid || submitting) return;
+
+        if (!uid) {
+            await logClientError({
+                error: "No UID at submit",
+                source: "Training.finalSubmit",
+                reason: "User not logged in at submit",
+            });
+            alert("Please log in before submitting.");
+            return;
+        }
+
         setSubmitting(true);
         try {
             for (const s of steps) {
-                const draft = readDraft(uid, s.key);
+                const draft = readDraft(uid, s.key) || {};
                 await setDoc(
                     doc(db, "sessionInfo", uid, "responses", s.key),
                     {
                         type: s.key,
-                        ...draft,
+                        ...draft,                 // flattened to match logout schema
                         submitted: true,
+                        draft: false,
                         status: "final-submit",
                         updatedAt: serverTimestamp(),
                     },
@@ -99,7 +128,10 @@ export default function Training({ group, onComplete }) {
                 for (const s of steps) localStorage.removeItem(storageKey(uid, s.key));
             } catch { }
 
-            // Let Home mark progress.training.trainingCompleted = true
+            try {
+                for (const s of steps) regRemove(s.key);
+            } catch { }
+
             onComplete?.();
         } catch (e) {
             await logClientError({
@@ -115,41 +147,74 @@ export default function Training({ group, onComplete }) {
     if (!steps.length) return null;
 
     return (
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
-            <div className="flex items-center justify-between text-sm opacity-70">
-                <div>Step {currentIdx + 1} / {steps.length}</div>
-                <div>Group {group}</div>
-            </div>
+        <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
+            <div className="border rounded-xl overflow-hidden h-[85vh]">
+                <div className="relative flex h-full">
+                    {/* LEFT: step content */}
+                    <div className="flex-1 min-w-0 flex flex-col">
+                        {/* top bar */}
+                        <div className="px-4 py-3 border-b bg-base-100 flex items-center justify-between">
+                            <div className="text-sm opacity-70">
+                                Step {currentIdx + 1} / {steps.length} · Group {group}
+                            </div>
 
-            {/* Page renders inputs, writes { isValid } into its draft, and reports validity here */}
-            <Comp onValidChange={handleCurrentValidChange} uid={uid} />
+                            {aiEnabled && (
+                                <button
+                                    className="btn btn-sm btn-outline"
+                                    onClick={() => setCollapsed((c) => !c)}
+                                    title={collapsed ? "Show AI Coach" : "Hide AI Coach"}
+                                >
+                                    {collapsed ? "Show Coach" : "Hide Coach"}
+                                </button>
+                            )}
+                        </div>
 
-            {/* If you re-enable AI later, Training decides here:
-      {ai && uid && (
-        <ChatBoxAI
-          uid={uid}
-          registryKey={`training-${key}`}
-          openerText="I’m here to help as you work on this step."
-          maxMessagesToSave={200}
-        />
-      )}
-      */}
+                        {/* scrollable step body */}
+                        <div className="p-6 flex-1 overflow-auto">
+                            <Comp onValidChange={handleCurrentValidChange} uid={uid} />
+                        </div>
 
-            <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex gap-2">
-                    <button className="btn" onClick={goPrev} disabled={isFirst}>‹ Previous</button>
-                    <button className="btn" onClick={goNext} disabled={isLast}>Next ›</button>
+                        {/* bottom bar: nav + submit */}
+                        <div className="px-6 py-4 border-t flex items-center justify-between">
+                            <div className="flex gap-2">
+                                <button className="btn" onClick={goPrev} disabled={isFirst}>
+                                    ‹ Previous
+                                </button>
+                                <button className="btn" onClick={goNext} disabled={isLast}>
+                                    Next ›
+                                </button>
+                            </div>
+
+                            {isLast && (
+                                <button
+                                    className={`btn ${allValid ? "btn-primary" : "btn-disabled"}`}
+                                    onClick={handleFinalSubmit}
+                                    disabled={!allValid || submitting}
+                                >
+                                    {submitting ? "Submitting…" : "Submit"}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* RIGHT: AI Coach (only for group 3 steps except warmup) */}
+                    {aiEnabled && (
+                        <ResizableSidebar
+                            width={width}
+                            min={MIN}
+                            max={MAX}
+                            collapsed={collapsed}
+                            onResizeStart={startResize}
+                        >
+                            <ChatBoxAI
+                                title="AI Coach"
+                                registryKey={stepKey}   // e.g., "training-goal", "training-plan"
+                                uid={uid}
+                                group={group}          // your ChatBox can use this to set the system prompt
+                            />
+                        </ResizableSidebar>
+                    )}
                 </div>
-
-                {isLast && (
-                    <button
-                        className={`btn ${allValid ? "btn-primary" : "btn-disabled"}`}
-                        onClick={handleFinalSubmit}
-                        disabled={!allValid || submitting}
-                    >
-                        {submitting ? "Submitting…" : "Submit"}
-                    </button>
-                )}
             </div>
         </div>
     );

@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { getCoachPrompt } from "../../data/questions/training/aiCoachPrompts";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
 
