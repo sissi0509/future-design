@@ -8,7 +8,7 @@ export const LIKERT = [
     'Strongly disagree',
 ];
 
-export const FREQ5 = [
+export const FREQS = [
     'Never',
     'Rarely',
     'Occasionally',
@@ -55,12 +55,14 @@ const surveyQuestions = [
         label: '2) While developing your 2-week plan…',
         questions: [
             {
+                key: 'emotion',
                 label: 'Which emotion best describes how you felt?',
                 options: EMOTIONS,
             },
             {
+                key: 'frequency',
                 label: 'How frequently did you feel that emotion?',
-                options: FREQ5,
+                options: FREQS,
             },
         ],
     },

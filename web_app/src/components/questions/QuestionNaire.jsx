@@ -84,6 +84,14 @@ export default function Questionnaire({
                 const arr = Array.isArray(v) ? v : [];
                 return arr.length >= 1;
             }
+            if (kind === "likert-multi") {
+                const rows = Array.isArray(q.questions) ? q.questions : [];
+                const obj = (v && typeof v === "object" && !Array.isArray(v)) ? v : {};
+                return rows.every((row, i) => {
+                    const k = row.key ?? String(i);
+                    return !!obj[k];
+                });
+            }
 
             return !!v;
         }
@@ -153,9 +161,13 @@ export default function Questionnaire({
                     label={current.label}
                     options={current.options}
                     value={
-                        (current.kind === "multi")
+                        current.kind === "multi"
                             ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
-                            : (answers[current.key] ?? "")
+                            : current.kind === "likert-multi"
+                                ? ((answers[current.key] && typeof answers[current.key] === "object" && !Array.isArray(answers[current.key]))
+                                    ? answers[current.key]
+                                    : {})
+                                : (answers[current.key] ?? "")
                     }
                     onChange={(val) => setValue(current.key, val)}
                     kind={current.kind || "single"}
