@@ -18,12 +18,18 @@ cd ../web_app && npm install
 ```
 
 ### 2. Firebase Setup
+- The frontend (`web_app/`) uses **environment variables** for Firebase config.  
+These are not committed to GitHub, so you need to create your own `.env.local` file, following the template in .env.example in web_app.
+
+
 - The web app already contains the Firebase config in:
   ```
   web_app/src/config/Firebase.js
   ```
 - **Authentication**: Email/Password sign-in is enabled  
 - **Firestore**: Database created in Native mode  
+
+
 
 > If anything breaks, contact the Firebase project owner to confirm access and rules.
 
@@ -44,8 +50,16 @@ node registerUser.js
 ```
 
 **Service account key**  
-- File: `admin/serviceAccountKey.json`  
-- Download from: Firebase Console → **Project Settings → Service accounts → Generate new private key**  
+- The admin scripts require: `admin/serviceAccountKey.json`  
+- To set this up:
+- **Download from: Firebase Console → **Project Settings → Service accounts → Generate new private key**  
+Download the .json file
+
+Rename it to serviceAccountKey.json
+
+Place it inside the admin/ folder
+For reference, see admin/serviceAccountKey.example.json to understand the expected format
+
 
 ### 4. Run the Web App
 ```bash
