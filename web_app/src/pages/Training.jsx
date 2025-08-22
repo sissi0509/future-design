@@ -114,7 +114,7 @@ export default function Training({ group, onComplete }) {
                     doc(db, "sessionInfo", uid, "responses", s.key),
                     {
                         type: s.key,
-                        ...draft,                 // flattened to match logout schema
+                        ...draft,
                         submitted: true,
                         draft: false,
                         status: "final-submit",
@@ -155,7 +155,7 @@ export default function Training({ group, onComplete }) {
                         {/* top bar */}
                         <div className="px-4 py-3 border-b bg-base-100 flex items-center justify-between">
                             <div className="text-sm opacity-70">
-                                Step {currentIdx + 1} / {steps.length} · Group {group}
+                                Step {currentIdx + 1} / {steps.length}
                             </div>
 
                             {aiEnabled && (

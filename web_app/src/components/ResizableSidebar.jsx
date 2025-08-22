@@ -10,10 +10,7 @@ export default function ResizableSidebar({
 }) {
     return (
         <div
-            className={[
-                "group bg-base-200 h-full relative",
-                collapsed ? "border-l-0" : "border-l",
-            ].join(" ")}
+            className="group h-full relative"
             style={{
                 width: collapsed ? 0 : width,
                 minWidth: collapsed ? 0 : min,
@@ -34,7 +31,7 @@ export default function ResizableSidebar({
                         style={{ touchAction: "none", background: "transparent" }}
                     />
 
-                    {/* Optional: very subtle 1px hairline hint on hover (keeps clicks for content) */}
+                    {/* // very subtle 1px hairline hint on hover (keeps clicks for content) */}
                     <div
                         className="absolute left-0 top-0 h-full w-px bg-base-content/10
                        opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
@@ -63,9 +60,9 @@ export default function ResizableSidebar({
  * Returns width, limits, and a startResize handler.
  */
 export function useResizableWidth({
-    initial = 28 * 16, // 28rem
-    min = 18 * 16,     // 18rem
-    max = 64 * 16,     // 64rem 
+    initial = 28 * 16,
+    min = 18 * 16,
+    max = 64 * 16,
 } = {}) {
     const [width, setWidth] = useState(initial);
 
