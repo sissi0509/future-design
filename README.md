@@ -52,13 +52,11 @@ node registerUser.js
 **Service account key**  
 - The admin scripts require: `admin/serviceAccountKey.json`  
 - To set this up:
-- **Download from: Firebase Console → **Project Settings → Service accounts → Generate new private key**  
-Download the .json file
-
-Rename it to serviceAccountKey.json
-
-Place it inside the admin/ folder
-For reference, see admin/serviceAccountKey.example.json to understand the expected format
+  - Go to: **Firebase Console → Project Settings → Service accounts → Generate new private key**  
+  - Download the .json file
+  - Rename it to serviceAccountKey.json
+  - Place it inside the admin/ folder
+  - For reference, see admin/serviceAccountKey.example.json to understand the expected format
 
 
 ### 4. Run the Web App
