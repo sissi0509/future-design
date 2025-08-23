@@ -208,9 +208,8 @@ export default function Training({ group, onComplete }) {
                         >
                             <ChatBoxAI
                                 title="AI Coach"
-                                registryKey={stepKey}   // e.g., "training-goal", "training-plan"
+                                registryKey={stepKey}
                                 uid={uid}
-                                group={group}          // your ChatBox can use this to set the system prompt
                             />
                         </ResizableSidebar>
                     )}
