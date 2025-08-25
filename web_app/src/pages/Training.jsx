@@ -5,6 +5,7 @@ import { db } from "../config/Firebase";
 import { useAuth } from "../components/User/AuthSetUp";
 import { logClientError } from "../services/errorHandle/logClientError";
 import { useAnswersRegistry } from "../context/AnswersRegistry"
+import { sendAnswerStatement } from "../services/xapi/AnswersStatement";
 
 import WarmupPage from "../components/training/WarmupPage";
 import GoalPage from "../components/training/GoalPage";
@@ -108,8 +109,10 @@ export default function Training({ group, onComplete }) {
 
         setSubmitting(true);
         try {
+            let answerObj = {}
             for (const s of steps) {
                 const draft = readDraft(uid, s.key) || {};
+                answerObj[s.key] = String(value);
                 await setDoc(
                     doc(db, "sessionInfo", uid, "responses", s.key),
                     {
@@ -123,6 +126,9 @@ export default function Training({ group, onComplete }) {
                     { merge: true }
                 );
             }
+            try {
+                await sendAnswerStatement(currentUser, 'training', answerObj);
+            } catch { }
 
             try {
                 for (const s of steps) localStorage.removeItem(storageKey(uid, s.key));

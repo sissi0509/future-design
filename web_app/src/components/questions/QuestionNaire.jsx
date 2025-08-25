@@ -84,12 +84,11 @@ export default function Questionnaire({
                 const arr = Array.isArray(v) ? v : [];
                 return arr.length >= 1;
             }
+
             if (kind === "likert-multi") {
-                const rows = Array.isArray(q.questions) ? q.questions : [];
-                const obj = (v && typeof v === "object" && !Array.isArray(v)) ? v : {};
-                return rows.every((row, i) => {
-                    const k = row.key ?? String(i);
-                    return !!obj[k];
+                return current.questions.every(q => {
+                    const val = answers[q.key];
+                    return !!val;
                 });
             }
 
@@ -157,25 +156,36 @@ export default function Questionnaire({
             )}
 
             {current?.type === "multiple" && (
-                <MultipleChoice
-                    label={current.label}
-                    options={current.options}
-                    value={
-                        current.kind === "multi"
-                            ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
-                            : current.kind === "likert-multi"
-                                ? ((answers[current.key] && typeof answers[current.key] === "object" && !Array.isArray(answers[current.key]))
-                                    ? answers[current.key]
-                                    : {})
-                                : (answers[current.key] ?? "")
-                    }
-                    onChange={(val) => setValue(current.key, val)}
-                    kind={current.kind || "single"}
-                    qkey={current.key}
-                    questions={current.questions ? current.questions : []}
-                />
-
-            )}
+                current.kind === 'likert-multi' ? (
+                    <div className="space-y-4">
+                        {current.questions.map((q) => (
+                            <MultipleChoice
+                                key={q.key}
+                                label={q.label}
+                                options={q.options}
+                                kind="likert"
+                                value={answers[q.key] ?? ''}
+                                onChange={(val) => setValue(q.key, val)}
+                                qkey={q.key}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <MultipleChoice
+                        label={current.label}
+                        options={current.options}
+                        value={
+                            current.kind === 'multi'
+                                ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
+                                : (answers[current.key] ?? '')
+                        }
+                        onChange={(val) => setValue(current.key, val)}
+                        kind={current.kind || 'single'}
+                        qkey={current.key}
+                    />
+                )
+            )
+            }
 
             {/* Nav */}
             <div className="flex justify-between gap-4">

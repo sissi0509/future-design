@@ -5,6 +5,7 @@ import { db } from '../config/Firebase';
 import { logClientError } from '../services/errorHandle/logClientError';
 import Header from '../components/Header';
 import Auth from '../components/User/Auth'
+import { sendAnswerStatement } from '../services/xapi/AnswersStatement';
 
 import Welcome from './Welcome';
 import Consent from './Consent';
@@ -90,6 +91,11 @@ export default function Home() {
         );
 
         await updateDoc(doc(db, "sessionInfo", uid), { [flagPath]: true });
+
+
+        await sendAnswerStatement(currentUser, type, answers);
+
+
     }
     //save then optimistically update local state via markComplete
     const saveAndComplete = async ({ type, flagPath, answers }) => {

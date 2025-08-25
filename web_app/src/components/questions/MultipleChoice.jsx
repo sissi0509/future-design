@@ -75,7 +75,7 @@ export default function MultipleChoice({
                 </div>
             )}
 
-            {kind === 'likert-multi' && Array.isArray(questions) && (
+            {/* {kind === 'likert-multi' && Array.isArray(questions) && (
                 <div className="space-y-5">
                     {questions.map((q, i) => {
                         const rowKey = q.key ?? String(i); // derive a stable key if none provided
@@ -104,7 +104,7 @@ export default function MultipleChoice({
                         );
                     })}
                 </div>
-            )}
+            )} */}
 
             {kind === "single" && (
                 <div className="space-y-2">

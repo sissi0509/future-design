@@ -55,12 +55,12 @@ const surveyQuestions = [
         label: '2) While developing your 2-week plan…',
         questions: [
             {
-                key: 'emotion',
+                key: 's2-emotion',
                 label: 'Which emotion best describes how you felt?',
                 options: EMOTIONS,
             },
             {
-                key: 'frequency',
+                key: 's2-frequency',
                 label: 'How frequently did you feel that emotion?',
                 options: FREQS,
             },
