@@ -43,3 +43,4 @@ export const flushErroLogQueue = async ({ collectionName, queueKey }) => {
 
     localStorage.setItem(queueKey, JSON.stringify(remaining));
 };
+

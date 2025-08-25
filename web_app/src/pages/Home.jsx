@@ -120,12 +120,12 @@ export default function Home() {
     const FLOW = [
         {
             path: 'progress.welcomeCompleted',
-            render: () => <Welcome onComplete={() => markComplete('progress.welcomeCompleted')} />
+            render: () => <Welcome currentUser={currentUser} onComplete={() => markComplete('progress.welcomeCompleted')} />
         },
 
         {
             path: 'progress.consentCompleted',
-            render: () => <Consent onComplete={() => markComplete('progress.consentCompleted')} />
+            render: () => <Consent currentUser={currentUser} onComplete={() => markComplete('progress.consentCompleted')} />
         },
 
         {

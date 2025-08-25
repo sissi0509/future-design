@@ -1,112 +1,151 @@
+import { useState, useRef, useEffect } from "react";
+import { logClientError } from "../services/errorHandle/logClientError";
+import {
+    makeKeydownLogger,
+    makeScrollLogger,
+    makeFunctionalClickStatement,
+    makeOptionToggleStatement,
+} from "../services/xapi/eventStatements";
+import {
+    appendXapiToStage,
+    flushStageBundleToGlobalXapi,
+} from "../services/xapi/xapiBundles";
 
-import { useState, useRef } from 'react';
-import { useAuth } from '../components/User/AuthSetUp';
-import { logClientError } from '../services/errorHandle/logClientError';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../config/Firebase';
-import ReadAloudButtonById from '../components/ReadAloudButton'
-import { makeKeydownLogger } from '../services/xapi/TypingStatement'
-
-export default function Consent({ onComplete }) {
-
-    const { currentUser } = useAuth();
+export default function Consent({ currentUser, onComplete }) {
     const [hasAgreed, setHasAgreed] = useState(false);
-    const [typedId, setTypedId] = useState('');
-    const [error, setError] = useState('');
-    const textareaRef = useRef(null);
+    const [typedId, setTypedId] = useState("");
+    const [error, setError] = useState("");
 
-    const isFormValid = hasAgreed && typedId.trim().length > 0
+    const inputRef = useRef(null);
+    const scrollRef = useRef(null);
 
-    const handleKeyDown = makeKeydownLogger({
+    const stageId = "consent";
+    const stepKeyInput = "prolificId";
+    const stepKeyScroll = "formScroll";
+
+    // log keystrokes
+    const onKeyDown = makeKeydownLogger({
         user: currentUser,
-        objectId: 'consent:text',
-        element: textareaRef.current,
+        stageId,
+        stepKey: stepKeyInput,
     });
 
+    // log scrolls
+    const onScroll = makeScrollLogger({
+        user: currentUser,
+        stageId,
+        stepKey: stepKeyScroll,
+        throttleMs: 200,
+    });
 
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (el) el.addEventListener("scroll", onScroll);
+        return () => el?.removeEventListener("scroll", onScroll);
+    }, [onScroll]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!isFormValid) {
-            setError('Please agree and sign with correct ID.');
-            return;
-        }
+    // handle checkbox click (option toggle)
+    const handleCheckboxChange = (e) => {
+        const checked = e.target.checked;
+        setHasAgreed(checked);
+
         try {
-            await setDoc(doc(db, 'sessionInfo', currentUser.uid), {
-                consentCompleted: true,
-            }, { merge: true });
-            if (onComplete) onComplete();
-
+            const stmt = makeOptionToggleStatement({
+                user: currentUser,
+                stageId,
+                stepKey: "agreeCheckbox",
+                choiceLabel: "I Agree",
+                selected: checked,
+            });
+            appendXapiToStage(currentUser, stageId, stmt);
         } catch (err) {
-            console.error('Consent error:', err);
-            await logClientError({
-                error,
-                source: 'Consent Page',
-                reason: 'Failed to update consentCompleted'
-            })
-            setError('Something went wrong. Please try again.');
+            logClientError({
+                error: err,
+                source: "Consent.handleCheckboxChange",
+                reason: "Failed to append checkbox toggle",
+            });
         }
-
-
-
     };
 
-    const consentText = `Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolores suscipit sapiente dolor sunt qui voluptate magni, ad blanditiis, repudiandae ducimus dolore odio reiciendis itaque beatae quaerat, 
-    laudantium necessitatibus tempore eos? Eaque non repudiandae illo tenetur quisquam ipsa culpa iure quaerat aspernatur consectetur dolores ab explicabo fuga, excepturi aliquam quas, omnis expedita a saepe.Porro repellat corporis nihil voluptatibus libero praesentium,
-Dolorum eaque ducimus eligendi aperiam illo delectus minus dolor quidem amet deleniti, culpa error sapiente quibusdam velit molestiae saepe rem possimus sed eum accusamus.Commodi porro minima ipsam optio inventore ?,
-        Repellendus illo esse odit dicta, laboriosam veritatis.Eius, hic ipsa omnis deleniti eum libero reprehenderit dicta, ex ut ducimus veniam dolor ullam earum distinctio quis possimus recusandae inventore repellendus voluptatibus!,
-            Ipsa ut neque magni saepe animi tempora quidem.Ea, eaque eligendi quae odio voluptas, natus iure incidunt molestias autem, perferendis voluptatem facere neque! Quas nulla obcaecati molestiae mollitia earum sapiente.,
-            Porro eligendi suscipit perspiciatis eaque illo praesentium ducimus iste fugiat quod nobis facilis, officia culpa dolorum quasi sint ipsam perferendis nam veritatis possimus mollitia, nisi non quidem nemo illum ? Deleniti.,
-            Ipsa cupiditate distinctio dicta, aperiam odit sapiente quaerat sed ex numquam! Ut reiciendis voluptas eius fuga, tempore, alias adipisci temporibus doloribus est veniam eligendi dolor error illo et maxime.Earum.,
-            Molestias dolor est vitae eos.At molestias magni est a, eos aperiam eius temporibus aliquam.Explicabo quidem corrupti quasi nisi at.Quas debitis mollitia aspernatur fugiat ad eveniet consectetur quos ?,
-        Magni molestias quidem nostrum maxime odit similique quo placeat, dolorum totam vero iure at, quasi quae.Dolor magni quis voluptates iusto natus odit! Quisquam numquam nam natus fugit dolorum ea ?,
-            Corporis, debitis.Accusantium adipisci provident ullam, molestiae incidunt magnam iure cumque debitis ab similique sunt quasi consequatur voluptas delectus optio quos earum assumenda consectetur alias fugiat ipsam possimus aliquam libero.`;
+    const isFormValid = hasAgreed && typedId.trim().length > 0;
+
+    // handle submit button click (functional click + flush)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!isFormValid) {
+            setError("Please agree and sign with correct ID.");
+            return;
+        }
+
+        try {
+            // log functional click
+            const stmt = makeFunctionalClickStatement({
+                user: currentUser,
+                stageId,
+                stepKey: "submit",
+                controlId: "btn-submit-consent",
+                label: "Submit and Continue",
+            });
+            appendXapiToStage(currentUser, stageId, stmt);
+
+            // flush all consent-stage statements (keys, scrolls, checkbox, submit)
+            await flushStageBundleToGlobalXapi({ user: currentUser, stageId });
+
+            // advance flow
+            onComplete?.();
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+            await logClientError({
+                error: err,
+                source: "Consent.handleSubmit",
+                reason: "Failed to flush consent bundle",
+            });
+        }
+    };
+
+    const consentText = ",Consent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team at";
 
     return (
         <div className="max-w-3xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">Consent Form</h1>
 
-            <div className="mb-6 border rounded p-4 bg-gray-50 max-h-[500px] overflow-y-auto">
-                <ReadAloudButtonById text={consentText} />
-
-                <p className="text-sm">{consentText}</p>
+            <div
+                ref={scrollRef}
+                className="mb-6 border rounded p-4 bg-gray-50 max-h-[500px] overflow-y-auto"
+            >
+                <p className="text-sm whitespace-pre-wrap">{consentText}</p>
             </div>
 
-
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="inline-flex items-center">
-                        <input
-                            type="checkbox"
-                            className="mr-2"
-                            checked={hasAgreed}
-                            onChange={(e) => setHasAgreed(e.target.checked)}
-                        />
-                        Agree
-                    </label>
-                </div>
+                <label className="inline-flex items-center">
+                    <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={hasAgreed}
+                        onChange={handleCheckboxChange}
+                    />
+                    Agree
+                </label>
 
                 <div>
                     <label className="block text-sm font-medium mb-1">
                         Type ID to sign:
                     </label>
                     <input
-                        ref={textareaRef}
+                        ref={inputRef}
                         type="text"
                         className="input input-bordered w-full"
                         value={typedId}
                         onChange={(e) => setTypedId(e.target.value)}
                         placeholder="Type your Prolific ID"
-                        onKeyDown={handleKeyDown}
+                        onKeyDown={onKeyDown}   // logs keystrokes
                     />
                 </div>
 
                 {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                <button
-                    type="submit"
-                    className="btn btn-neutral-content"
-                >
+                <button type="submit" className="btn btn-neutral-content">
                     Submit and Continue
                 </button>
             </form>

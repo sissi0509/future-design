@@ -18,7 +18,7 @@ export function answerStatement(user, {
     stepKey,
     answers,
 }) {
-    const objectId = `urn:future-design-app:${stageId}:${stepKey}`;
+    const objectId = `urn:future-design-app:stage/${stageId}/step/${stepKey}`;
     const response = String(answers ?? "");
 
 
