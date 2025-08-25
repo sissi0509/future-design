@@ -1,20 +1,19 @@
 import { safeLogToFirebase } from '../errorHandle/safeLog';
 import { buildActor } from './common/buildActor';
 
-
-export const sendLoginStatement = async (user) => {
+export const sendLogoutStatement = async (user) => {
     const statement = {
         actor: buildActor(user),
         verb: {
-            id: 'https://brindlewaye.com/xAPITerms/verbs/loggedin/',
-            display: { 'en-US': 'logged in' }
+            id: 'https://brindlewaye.com/xAPITerms/verbs/loggedout/',
+            display: { 'en-US': 'logged out' }
         },
         object: {
-            id: 'urn:future-design-app:login',
+            id: 'urn:future-design-app:logout',
             "objectType": "Activity",
             definition: {
-                name: { 'en-US': "Login" },
-                description: { 'en-US': "The learner logged into the Future-Design training platform." }
+                name: { 'en-US': "Logout" },
+                description: { 'en-US': "The learner logged out of the Future-Design training platform." }
             }
         },
         timestamp: new Date().toISOString()

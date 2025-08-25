@@ -25,16 +25,17 @@ const instructionContent = {
                     title: "(3) Contrary Cases",
                     text:
                         "It is also helpful to think by an opposite method, taking cases of which we can say ‘Well, whatever my goal is, that certainly isn’t an instance of it’."
+
                 },
                 {
                     title: "(4) Borderline Cases",
                     text:
-                        "It is also helpful to think of precisely those cases where we are not sure, and see what we would say about them."
+                        "It is also helpful to think of precisely those cases where we are not sure, and see what we would say about them. Think of an example that has some features in common with the model case of achieving a goal, but perhaps not enough: and we then look to see which is the important features that is missing."
                 }
             ],
             [
                 {
-                    title: "(5) Social Context",
+                    title: "(5) Underlying Anxiety",
                     text:
                         "Questions about the future often arise because of some underlying anxiety: certain features of life seem somehow to threaten the way in which we had always thought, and hence give us a feeling of insecurity. The underlying anxiety is useful to notice for understanding the root of a challenging question."
                 },

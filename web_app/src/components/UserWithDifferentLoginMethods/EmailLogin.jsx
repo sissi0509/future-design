@@ -9,9 +9,10 @@ export default function EmailLogin({ onClose }) {
 
   const handleEmailLogin = async () => {
     try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
 
-      await sendLoginStatement(user);
+      await sendLoginStatement(user.uid, user.email);
       onClose();
     } catch (err) {
       alert('Email login failed, check your email and password');

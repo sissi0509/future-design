@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
 import { logClientError } from '../services/errorHandle/logClientError';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
 import ReadAloudButtonById from '../components/ReadAloudButton'
+import { makeKeydownLogger } from '../services/xapi/TypingStatement'
 
 export default function Consent({ onComplete }) {
 
@@ -12,8 +13,15 @@ export default function Consent({ onComplete }) {
     const [hasAgreed, setHasAgreed] = useState(false);
     const [typedId, setTypedId] = useState('');
     const [error, setError] = useState('');
+    const textareaRef = useRef(null);
 
-    const isFormValid = hasAgreed && typedId.trim() > 0
+    const isFormValid = hasAgreed && typedId.trim().length > 0
+
+    const handleKeyDown = makeKeydownLogger({
+        user: currentUser,
+        objectId: 'consent:text',
+        element: textareaRef.current,
+    });
 
 
 
@@ -24,10 +32,9 @@ export default function Consent({ onComplete }) {
             return;
         }
         try {
-            const userRef = doc(db, 'sessionInfo', currentUser.uid);
-            await updateDoc(userRef, {
+            await setDoc(doc(db, 'sessionInfo', currentUser.uid), {
                 consentCompleted: true,
-            });
+            }, { merge: true });
             if (onComplete) onComplete();
 
         } catch (err) {
@@ -84,11 +91,13 @@ Dolorum eaque ducimus eligendi aperiam illo delectus minus dolor quidem amet del
                         Type ID to sign:
                     </label>
                     <input
+                        ref={textareaRef}
                         type="text"
                         className="input input-bordered w-full"
                         value={typedId}
                         onChange={(e) => setTypedId(e.target.value)}
                         placeholder="Type your Prolific ID"
+                        onKeyDown={handleKeyDown}
                     />
                 </div>
 
