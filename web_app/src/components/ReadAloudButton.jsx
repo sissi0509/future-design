@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+
 export default function ReadAloudButton({ text, className = '', onClick }) {
     const [isSpeaking, setIsSpeaking] = useState(false);
 

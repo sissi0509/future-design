@@ -55,7 +55,7 @@ const preTestQuestions = [
         type: 'text',
         key: 'pre5',
         label: '5) In one or two sentences, what future goal do you want this course to move you toward?',
-        minWords: 5,
+        minWords: 1,
         maxWords: 40,
     },
 ];

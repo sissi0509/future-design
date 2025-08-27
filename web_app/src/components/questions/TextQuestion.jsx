@@ -48,12 +48,12 @@ export default function TextQuestion({
                     } />
                 </div>
             </div>
-            <div className={`text-sm mt-1 ${valid ? 'text-green-600' : 'text-red-500'
+            {/* <div className={`text-sm mt-1 ${valid ? 'text-green-600' : 'text-red-500'
                 }`}>
                 Word count: {wordCount}
                 {minWords > 0 && ` (min: ${minWords}`}
                 {maxWords < Infinity && `, max: ${maxWords})`}
-            </div>
+            </div> */}
         </div>
     );
 }

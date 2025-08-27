@@ -48,7 +48,7 @@ const instructionContent = {
         ]
     },
     outro:
-        "Apply the above techniques to your goal and see what light they shed upon it."
+        "On the next page, apply these techniques."
 };
 
 export default instructionContent;

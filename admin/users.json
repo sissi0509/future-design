@@ -3,7 +3,7 @@
         "email": "user1@example.com",
         "password": "usedfortesting123",
         "groupNumber": 1,
-        "trainingSeed": {
+        "previousResponses": {
             "expect": {
                 "prompt": "What you expect you'll be like and doing in 5 years.",
                 "answers": [
@@ -32,7 +32,7 @@
         "email": "user2@example.com",
         "password": "usedfortesting123",
         "groupNumber": 2,
-        "trainingSeed": {
+        "previousResponses": {
             "expect": {
                 "prompt": "What you expect you'll be like and doing in 5 years.",
                 "answers": [
@@ -61,7 +61,7 @@
         "email": "user3@example.com",
         "password": "usedfortesting123",
         "groupNumber": 3,
-        "trainingSeed": {
+        "previousResponses": {
             "expect": {
                 "prompt": "What you expect you'll be like and doing in 5 years.",
                 "answers": [

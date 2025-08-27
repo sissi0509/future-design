@@ -8,13 +8,13 @@ import BasicQuestion from './BasicQuestion'
 
 
 export default function GoalPage({ onValidChange, currentUser }) {
-    const [seed, setSeed] = useState(null);
+    const [previousResponses, setPreviousResponses] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const uid = currentUser?.uid;
     useEffect(() => {
         if (!uid) {
-            setSeed(goalQuestions);
+            setPreviousResponses(goalQuestions);
             setLoading(false);
             return;
         }
@@ -25,15 +25,15 @@ export default function GoalPage({ onValidChange, currentUser }) {
                 const ref = doc(db, "sessionInfo", uid);
                 const snap = await getDoc(ref);
                 const data = snap.exists() ? snap.data() : null;
-                const s = data?.progress?.training?.seed || null;
-                if (!cancelled) setSeed(s);
+                const s = data?.progress?.training?.previousResponses || null;
+                if (!cancelled) setPreviousResponses(s);
             } catch (err) {
                 await logClientError({
                     error: err,
-                    source: "GoalPage.loadSeed",
-                    reason: "Failed to load training seed",
+                    source: "GoalPage.loadpreviousResponses",
+                    reason: "Failed to load previous responses ",
                 });
-                if (!cancelled) setSeed(null);
+                if (!cancelled) setPreviousResponses(null);
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -58,14 +58,14 @@ export default function GoalPage({ onValidChange, currentUser }) {
 
                 {loading ? (
                     <div className="opacity-70 text-sm">Loading…</div>
-                ) : seed ? (
+                ) : previousResponses ? (
                     <div className="space-y-4 text-sm leading-relaxed">
                         <section>
                             <div className="font-medium">
-                                {seed?.expect?.prompt ?? "What you expect in 5 years"}
+                                {previousResponses?.expect?.prompt ?? "What you expect in 5 years"}
                             </div>
                             <ul className="list-disc ml-5 mt-1 space-y-1">
-                                {(seed?.expect?.answers ?? []).map((a, i) => (
+                                {(previousResponses?.expect?.answers ?? []).map((a, i) => (
                                     <li key={i}>{a}</li>
                                 ))}
                             </ul>
@@ -74,10 +74,10 @@ export default function GoalPage({ onValidChange, currentUser }) {
                         {/* Avoid */}
                         <section>
                             <div className="font-medium">
-                                {seed?.avoid?.prompt ?? "What you want to avoid in 5 years"}
+                                {previousResponses?.avoid?.prompt ?? "What you want to avoid in 5 years"}
                             </div>
                             <ul className="list-disc ml-5 mt-1 space-y-1">
-                                {(seed?.avoid?.answers ?? []).map((a, i) => (
+                                {(previousResponses?.avoid?.answers ?? []).map((a, i) => (
                                     <li key={i}>{a}</li>
                                 ))}
                             </ul>
@@ -86,9 +86,9 @@ export default function GoalPage({ onValidChange, currentUser }) {
                         {/* Advice */}
                         <section>
                             <div className="font-medium">
-                                {seed?.advice?.prompt ?? "Most influential advice"}
+                                {previousResponses?.advice?.prompt ?? "Most influential advice"}
                             </div>
-                            <p className="mt-1">{seed?.advice?.answer ?? ""}</p>
+                            <p className="mt-1">{previousResponses?.advice?.answer ?? ""}</p>
                         </section>
                     </div>
                 ) : (

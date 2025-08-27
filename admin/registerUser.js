@@ -1,4 +1,3 @@
-// seedUsers.js
 const admin = require("firebase-admin");
 const users = require("./users.json");
 const serviceAccount = require("./serviceAccountKey.json");
@@ -32,11 +31,11 @@ function stripUndefined(obj) {
     return out;
 }
 
-async function ensureMinimalSessionInfo({ uid, email, groupNumber, trainingSeed }) {
+async function ensureMinimalSessionInfo({ uid, email, groupNumber, previousResponses }) {
     const ref = db.collection("sessionInfo").doc(uid);
     const snap = await ref.get();
 
-    // assume trainingSeed already has the final structure you want
+    // assume previousResponses already has the final structure you want
     // {
     //   expect: { prompt: "...", answers: ["...", "...", "...", "..."] },
     //   avoid:  { prompt: "...", answers: ["...", "...", "...", "..."] },
@@ -48,7 +47,7 @@ async function ensureMinimalSessionInfo({ uid, email, groupNumber, trainingSeed 
         groupNumber,
         progress: {
             training: {
-                seed: trainingSeed
+                previousResponses: previousResponses
             }
         }
     });
@@ -58,7 +57,7 @@ async function ensureMinimalSessionInfo({ uid, email, groupNumber, trainingSeed 
     if (!snap.exists) {
         console.log(`✅ sessionInfo created for ${email}`);
     } else {
-        console.log(`🔁 sessionInfo updated for ${email} (seed & training flags)`);
+        console.log(`🔁 sessionInfo updated for ${email} (training flags)`);
     }
 }
 
@@ -70,7 +69,7 @@ async function run() {
                 uid: userRecord.uid,
                 email: user.email,
                 groupNumber: user.groupNumber,
-                trainingSeed: user.trainingSeed,
+                previousResponses: user.previousResponses,
             });
         } catch (err) {
             console.error(`❌ Failed to process ${user.email}:`, err.message);

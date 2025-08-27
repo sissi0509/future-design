@@ -22,6 +22,8 @@ export function insertTextAt(textarea, currentValue, spokenText, onChange) {
     }, 0);
 }
 
+const SPEECH_TO_TEXT_SOURCE = 'webkitSpeechRecognition' //actor for the xAPI statement
+
 export function SpeechToTextButton({ logSystemGenerated, onClick, onResult, className = '' }) {
     const [isListening, setIsListening] = useState(false);
 
@@ -40,7 +42,7 @@ export function SpeechToTextButton({ logSystemGenerated, onClick, onResult, clas
         rec.onresult = (e) => {
             const transcript = e?.results?.[0]?.[0]?.transcript ?? '';
             if (transcript.trim()) {
-                logSystemGenerated?.('speech-to-text', transcript);
+                logSystemGenerated?.(SPEECH_TO_TEXT_SOURCE, transcript);
                 onResult(transcript);
             }
             setIsListening(false);

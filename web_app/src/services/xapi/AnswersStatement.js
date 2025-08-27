@@ -58,7 +58,7 @@ export const sendAnswerStatement = async (user, stageId, answersObj) => {
     );
 
     const finalAnswer = {
-        type: `answeres for stage ${stageId}`,
+        type: `answers for stage ${stageId}`,
         stageId,
         actor: statements[0]?.actor,
         answers: statements,

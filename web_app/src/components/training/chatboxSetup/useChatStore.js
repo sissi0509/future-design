@@ -3,6 +3,9 @@ import { useAnswersRegistry } from "../../../context/AnswersRegistry";
 import { createChatSession } from "../../../services/aiApi/chat";
 import { normalizeBranchesData, uidLike } from "./chatUtils";
 import { logClientError } from '../../../services/errorHandle/logClientError'
+
+const AI_SOURCE = "gemini-2.5-flash" // AI actor for the xAPI statement
+
 export function useChatStore({
     storageKey,
     opener,
@@ -152,7 +155,7 @@ export function useChatStore({
                 ...m,
                 { role: "ai", text: reply || "(no response)" },
             ]);
-            try { logSystemGenerated?.("ai", reply || ""); } catch { }
+            try { logSystemGenerated?.(AI_SOURCE, reply || ""); } catch { }
         } catch (err) {
             setActiveMessages((m) => [
                 ...m,

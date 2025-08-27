@@ -15,9 +15,11 @@ export default function Logout() {
     const handleLogOut = async () => {
         if (busy) return;
         setBusy(true);
+        alert('Without submission, your current session will not be saved.')
         try {
             await flushToResponses();
             await sendLogoutStatement(user);
+
         } catch (e) {
             logClientError({
                 error: e,
