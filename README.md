@@ -182,6 +182,11 @@ During development, I addressed several technical challenges:
 - **High-Volume and detailed Logging** → Built a multi-layer xAPI logging system:
   - **Bundled fine-grained logs** capture keystrokes, clicks, and nearly every key or mouse movement, but are aggregated before writing to Firebase to avoid exceeding quota limits.
   - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage, so researchers can review full results easily without needing to piece together every micro-log.
+-**Reliability & Error Handling** →
+
+Safe delivery: All logs go through safeLogToFirebase, with retries and batching to prevent data loss.
+
+Error tracking: Instead of console.log or console.error, client errors are captured with logClientError() and stored in Firebase, giving researchers/admins visibility into client-side issues.
 - **Reliable Data Storage** → Combined:
   - **LocalStorage drafts** to prevent data loss on refresh or navigation.
   - **App-wide registry flush** to Firebase on logout for permanent storage    
