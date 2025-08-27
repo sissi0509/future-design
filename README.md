@@ -174,15 +174,18 @@ node exportFirestore.js
 
 
 ---
-## 🧩 Problem + Solution
-This project was built to support **research studies** by Gati where:  
-- A platform is needed to assign users to different conditions (AI vs non-AI).  
-- Every user interaction (clicks, keystrokes, scrolls, answers) had to be logged in detail.  
+## 🧩 Problem + Solution  
 
-The solution is a **fullstack React + Firebase app** with:  
-- Admin scripts to seed users + conditions  
-- Detailed xAPI logging of user behavior  
-- AI chatbot integration with modal strategies for guided reflection  
+During development, several technical challenges had to be solved:  
+
+- **Rich AI Chatbox** → Needed branching conversations so users could edit past messages and fork new branches.  
+- **High-Volume Logging** → Required detailed xAPI logs (keystrokes, clicks) *and* summary/bundled logs to avoid hitting Firebase quota limits.  
+- **Reliable Data Storage** → Users often refresh or navigate away, so I combined:  
+  - **LocalStorage drafts** for resilience  
+  - **App-wide registry flush** to Firebase on logout for permanent storage    
+- **Accessibility** → Integrated *Read Aloud* (text → speech) and *Speak* (speech → text input) across training, post-test, and survey pages.  
+
+✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.  
 
 
 ---
