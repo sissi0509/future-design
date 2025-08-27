@@ -176,14 +176,16 @@ node exportFirestore.js
 ---
 ## 🧩 Problem + Solution  
 
-During development, several technical challenges had to be solved:  
+During development, I addressed several technical challenges:
 
-- **Rich AI Chatbox** → Needed branching conversations so users could edit past messages and fork new branches.  
-- **High-Volume Logging** → Required detailed xAPI logs (keystrokes, clicks) *and* summary/bundled logs to avoid hitting Firebase quota limits.  
-- **Reliable Data Storage** → Users often refresh or navigate away, so I combined:  
-  - **LocalStorage drafts** for resilience  
+- **Rich AI Chatbox** → Implemented branching so users can edit past messages and fork new conversations.
+- **High-Volume and detailed Logging** → Built a multi-layer xAPI logging system:
+  - **Bundled fine-grained logs** capture keystrokes, clicks, and nearly every key or mouse movement, but are aggregated before writing to Firebase to avoid exceeding quota limits.
+  - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage, so researchers can review full results easily without needing to piece together every micro-log.
+- **Reliable Data Storage** → Combined:
+  - **LocalStorage drafts** to prevent data loss on refresh or navigation.
   - **App-wide registry flush** to Firebase on logout for permanent storage    
-- **Accessibility** → Integrated *Read Aloud* (text → speech) and *Speak* (speech → text input) across training, post-test, and survey pages.  
+- **Accessibility** → I integrated Read Aloud (text → speech) and Speak (speech → text input) across training, post-test, and survey pages.
 
 ✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.  
 
