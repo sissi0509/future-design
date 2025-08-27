@@ -136,59 +136,42 @@ repo/
    └─ ...
 ```
 
-## 📤 Export Firestore Data to JSON
+## 📤 Export Firestore Data to JSON  
 
-You can export Firestore collections into local `.json` files for analysis or backup.
+You can export Firestore collections into local `.json` files for analysis or backup.  
 
-### Step 1: Create a local project folder
-Open your terminal and run:
+### Step 1: Create a local project folder  
+Open your terminal and run:  
 ```bash
 mkdir firestore-export
 cd firestore-export
 npm init -y
 npm install firebase-admin
-```
+```  
 
-### Step 2: Get Firebase Admin SDK Key
+### Step 2: Get Firebase Admin SDK Key  
 1. Go to your **Firebase Console → Project Settings → Service Accounts** tab.  
 2. Click **Generate new private key** to download a `.json` file.  
 3. Move this file into your `firestore-export` folder and rename it to `serviceAccountKey.json`.  
 
-### Step 3: Create the export script
-Create a file named `exportFirestore.js` inside the `firestore-export` folder:
+### Step 3: Copy the export script  
+To keep the repo clean, copy the provided script from `admin/` into your local folder:  
+```bash
+cp ../admin/exportFirestore.js .
+```  
 
-```js
-const admin = require("firebase-admin");
-const fs = require("fs");
-const serviceAccount = require("./serviceAccountKey.json");
+This script lets you export any Firestore collection to a `.json` file.  
+Edit the script to replace `"your-collection-name"` with the collection you want to export.  
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
-
-async function exportCollection(collectionName) {
-  const snapshot = await db.collection(collectionName).get();
-  const data = {};
-  snapshot.forEach(doc => {
-    data[doc.id] = doc.data();
-  });
-  fs.writeFileSync(`${collectionName}.json`, JSON.stringify(data, null, 2));
-  console.log(`Exported ${collectionName}.json`);
-}
-
-// Replace 'your-collection-name' with the actual collection name
-exportCollection("your-collection-name");
-```
-
-### Step 4: Run the script
-From the terminal inside the `firestore-export` folder, run:
+### Step 4: Run the script  
+Inside the `firestore-export` folder, run:  
 ```bash
 node exportFirestore.js
-```
+```  
 
-✅ This will generate a file named `your-collection-name.json` in the folder.
+✅ This will generate a file named `<collection>.json` in the same folder.  
+
+
 
 ---
 ## 🧩 Problem + Solution
