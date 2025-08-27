@@ -5,7 +5,7 @@ export default function ReadAloudButton({ text, className = '', onClick }) {
 
 
     const handleClick = () => {
-        onClick?.('btn-readAloud', 'ReadAloud')
+        onClick?.('btn-readAloud', isSpeaking ? 'StopRead' : 'Read')
 
         if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
             alert(" Your browser does not support text-to-speech.");

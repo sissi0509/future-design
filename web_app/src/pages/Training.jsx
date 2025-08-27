@@ -4,9 +4,11 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/Firebase";
 import { logClientError } from "../services/errorHandle/logClientError";
 import { useAnswersRegistry } from "../context/AnswersRegistry"
-import { sendAnswerStatement } from "../services/xapi/AnswersStatement";
+import { sendAnswerStatement, sendConversationTranscript } from "../services/xapi/AnswersStatement";
 import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
 import { makeKeydownLogger, makeClickLogger } from '../services/xapi/eventStatements'
+import { buildConversationTranscriptFromStored } from '../components/training/chatboxSetup/chatUtils';
+
 
 import WarmupPage from "../components/training/WarmupPage";
 import GoalPage from "../components/training/GoalPage";
@@ -44,6 +46,9 @@ function buildSteps(group) {
 
 const MIN = 18 * 16;
 const MAX = 64 * 16;
+
+const CONVERSATION_ID = "trainingAiConversation";
+const OPEN_TEXT = "Hi! Ask me anything as you work."
 
 export default function Training({ currentUser, group, onComplete }) {
     const uid = currentUser?.uid;
@@ -147,6 +152,29 @@ export default function Training({ currentUser, group, onComplete }) {
 
             await flushStageBundleToGlobalXapi({ user: currentUser, stageId: 'training' })
 
+            try {
+                const storageKey = `chat-${CONVERSATION_ID}-${uid}`;
+                const transcript = buildConversationTranscriptFromStored({
+                    storageKey,
+                    openerText: OPEN_TEXT,
+                    maxMessages: 200,
+                });
+
+                if (transcript && (transcript.messages?.length || 0) > 1) {
+                    await sendConversationTranscript(currentUser, {
+                        stageId: 'training',
+                        conversationId: CONVERSATION_ID,
+                        transcript,
+                    });
+                }
+            } catch (err) {
+                await logClientError({
+                    error: err,
+                    source: "Training.finalSubmit",
+                    reason: "Failed sending conversation transcript",
+                });
+            }
+
             onComplete?.();
         } catch (e) {
             await logClientError({
@@ -176,7 +204,10 @@ export default function Training({ currentUser, group, onComplete }) {
                             {aiEnabled && (
                                 <button
                                     className="btn btn-sm btn-outline"
-                                    onClick={() => setCollapsed((c) => !c)}
+                                    onClick={() => {
+                                        logClick("btn-AiCoach", collapsed ? "ShowAIcoach" : "HideAIcoach");
+                                        setCollapsed((c) => !c);
+                                    }}
                                     title={collapsed ? "Show AI Coach" : "Hide AI Coach"}
                                 >
                                     {collapsed ? "Show Coach" : "Hide Coach"}
@@ -239,8 +270,9 @@ export default function Training({ currentUser, group, onComplete }) {
                         >
                             <ChatBoxAI
                                 title="AI Coach"
-                                registryKey={stepKey}
-                                uid={uid}
+                                stepId={`${stepKey}-AiChatBox`}
+                                currentUser={currentUser}
+                                stageId="training"
                             />
                         </ResizableSidebar>
                     )}

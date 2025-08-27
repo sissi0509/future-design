@@ -8,6 +8,7 @@ export function useChatStore({
     opener,
     registryKey,
     maxMessagesToSave,
+    logSystemGenerated
 }) {
     const { set: regSet, remove: regRemove } = useAnswersRegistry();
 
@@ -41,7 +42,6 @@ export function useChatStore({
             createdAt: Date.now(),
         };
         return { branches: [b0], activeId: b0.id };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ----- UI state -----
@@ -97,7 +97,6 @@ export function useChatStore({
     // Mount: create a session for the initial branch from its messages
     useEffect(() => {
         initSessionForBranch(activeId, messages);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // save branches to localStorage
@@ -125,7 +124,7 @@ export function useChatStore({
                     storageKey,
                     JSON.stringify({
                         branches: next,
-                        activeId: persistActiveIdOverride ?? activeId,
+                        activeId: activeId,
                     })
                 );
             } catch { }
@@ -153,6 +152,7 @@ export function useChatStore({
                 ...m,
                 { role: "ai", text: reply || "(no response)" },
             ]);
+            try { logSystemGenerated?.("ai", reply || ""); } catch { }
         } catch (err) {
             setActiveMessages((m) => [
                 ...m,

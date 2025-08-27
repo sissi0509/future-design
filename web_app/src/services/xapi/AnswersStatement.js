@@ -71,3 +71,57 @@ export const sendAnswerStatement = async (user, stageId, answersObj) => {
         queueKey: 'xapi_statements'
     })
 };
+
+
+export function conversationTranscriptStatement(user, {
+    stageId,             // "training"
+    conversationId,      // "trainingAiConversation"
+    transcript,          // { activeId, messages:[{role,text}], branchesMeta: [...] }
+}) {
+    const objectId = `urn:future-design:conversation/${stageId}/${conversationId}`;
+    return {
+        actor: buildActor(user),
+        timestamp: new Date().toISOString(),
+        verb: { id: "http://adlnet.gov/expapi/verbs/interacted", display: { "en-US": "interacted" } },
+        object: {
+            id: objectId,
+            objectType: "Activity",
+            definition: {
+                name: { "en-US": "Full AI conversation transcript" },
+                description: { "en-US": `Active branch transcript for ${conversationId}` },
+                type: "http://adlnet.gov/expapi/activities/media",
+            },
+        },
+        result: {
+            extensions: {
+                "https://futuredesign.app/xapi/ext/activeBranch": transcript.activeId,
+                "https://futuredesign.app/xapi/ext/messages": transcript.messages,        // ordered turns
+                "https://futuredesign.app/xapi/ext/branches": transcript.branchesMeta,    // optional meta
+                "https://futuredesign.app/xapi/ext/messageCount": transcript.messages.length,
+            },
+        },
+    };
+}
+
+export async function sendConversationTranscript(user, {
+    stageId,
+    conversationId,
+    transcript,
+}) {
+    const stmt = conversationTranscriptStatement(user, { stageId, conversationId, transcript });
+
+    const payload = {
+        type: "conversation transcript",
+        stageId,
+        conversationId,
+        actor: stmt.actor,
+        statement: stmt,
+        createdAt: new Date().toISOString(),
+    };
+
+    await safeLogToFirebase({
+        collectionName: 'xapi_statements',
+        data: payload,
+        queueKey: 'xapi_statements',
+    });
+}

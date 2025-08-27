@@ -1,20 +1,43 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
+import {
+    makeKeydownLogger,
+    makeClickLogger,
+    makeSystemGeneratedLogger,
+} from "../../services/xapi/eventStatements";
+
+const OPEN_TEXT = "Hi! Ask me anything as you work."
 
 export default function ChatBoxAI({
     title = "AI Coach",
     registryKey = "trainingAiConversation",
-    uid,
+    currentUser,
+    stageId,
+    stepId,
     maxMessagesToSave = 200,
 }) {
-    const storageKey = `chat-${registryKey}-${uid}`;
+    const storageKey = `chat-${registryKey}-${currentUser.uid}`;
     const textareaRef = useRef(null);
 
     const [opener] = useState(() => ({
         role: "ai",
-        text: "Hi! Ask me anything as you work.",
+        text: OPEN_TEXT,
     }));
+
+    const logKeydown = useMemo(
+        () => makeKeydownLogger({ user: currentUser, stageId, stepKey: stepId }),
+        [currentUser, stageId, stepId]
+    );
+    const logClick = useMemo(
+        () => makeClickLogger({ user: currentUser, stageId, stepKey: stepId }),
+        [currentUser, stageId, stepId]
+    );
+    const logSystemGenerated = useMemo(
+        () => makeSystemGeneratedLogger({ user: currentUser, stageId, stepKey: stepId }),
+        [currentUser, stageId, stepId]
+    );
+
 
     const {
         state: { branches, activeId, messages, input, isThinking, editingIndex, editDraft },
@@ -33,6 +56,7 @@ export default function ChatBoxAI({
         opener,
         registryKey,
         maxMessagesToSave,
+        logSystemGenerated
     });
 
     return (
@@ -69,15 +93,30 @@ export default function ChatBoxAI({
                                                 className="textarea w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
                                                 value={editDraft}
                                                 onChange={(e) => setEditDraft(e.target.value)}
-                                                // onKeyDown={(e) => {
-                                                //     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEditAndResend_NewBranch(); }
-                                                //     if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                                                // }}
+                                                onKeyDown={logKeydown}
                                                 autoFocus
                                             />
                                             <div className="mt-3 flex justify-end gap-2">
-                                                <button type="button" className="btn" onClick={cancelEdit}>Cancel</button>
-                                                <button type="button" className="btn btn-neutral" onClick={saveEditAndResend_NewBranch}>Send</button>
+                                                <button
+                                                    type="button"
+                                                    className="btn"
+                                                    onClick={() => {
+                                                        logClick("btn-edit-cancel", "EditCancel");
+                                                        cancelEdit();
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-neutral"
+                                                    onClick={async () => {
+                                                        logClick("btn-edit-send", "EditSend");
+                                                        await saveEditAndResend_NewBranch();
+                                                    }}
+                                                >
+                                                    Send
+                                                </button>
                                             </div>
                                         </div>
                                     )}
@@ -96,7 +135,10 @@ export default function ChatBoxAI({
                                             <button
                                                 type="button"
                                                 title="Edit & re-ask (creates a new branch)"
-                                                onClick={() => startEdit(i)}
+                                                onClick={() => {
+                                                    logClick("btn-edit", "EditMessage");
+                                                    startEdit(i);
+                                                }}
                                                 className="btn btn-ghost btn-xs"
                                             >
                                                 ✏️ Edit
@@ -110,7 +152,10 @@ export default function ChatBoxAI({
                                                     <button
                                                         key={id}
                                                         type="button"
-                                                        onClick={() => switchBranch(id)}
+                                                        onClick={() => {
+                                                            logClick("btn-branch", `SwitchBranch:${idx + 1}`);
+                                                            switchBranch(id);
+                                                        }}
                                                         className={`btn btn-xs ${idx === activeOptionIdx ? "btn-primary" : "btn-outline"}`}
                                                     >
                                                         {idx + 1}
@@ -134,7 +179,13 @@ export default function ChatBoxAI({
                 )}
             </div>
 
-            <form onSubmit={send} className="px-3 pt-3 pb-6 border-t bg-base-100">
+            <form
+                onSubmit={(e) => {
+                    logClick("btn-send", "Send");
+                    send(e);
+                }}
+                className="px-3 pt-3 pb-6 border-t bg-base-100"
+            >
                 <div className="relative">
                     <textarea
                         value={input}
@@ -144,14 +195,18 @@ export default function ChatBoxAI({
                         rows={5}
                         className="textarea textarea-bordered w-full rounded-lg text-base pr-28"
                         onKeyDown={(e) => {
+                            logKeydown(e);
                             if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
+                                logClick("btn-send", "Send(Enter)");
                                 send(e);
                             }
                         }}
                     />
                     <div className="absolute right-2 bottom-2 flex gap-2">
                         <SpeechToTextButton
+                            onClick={logClick}
+                            logSystemGenerated={logSystemGenerated}
                             onResult={(spoken) => {
                                 const ta = textareaRef.current;
                                 if (!ta) return;
