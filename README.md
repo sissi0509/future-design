@@ -84,20 +84,20 @@ These are not committed to GitHub, so you need to create your own `.env.local` f
 
 > If anything breaks, contact the Firebase project owner to confirm access and rules.
 
-### 3. Seed / Register Users
+### 3. Register Users  
+
+The **admin scripts** let you register users in Firebase with a pre-assigned `groupNumber` and optional `trainingSeed` data.  
+
+- `groupNumber` → assigns which experimental condition a user belongs to.  
+- `trainingSeed` → pre-populated prompts and example answers, generated from the **Qualtrics pre-survey** before users arrive at this app.  
+  - These values can be shown again in training to **refresh the user’s memory** and scaffold their reflection.  
+  - `trainingSeed` is not related to ML model training — think of it as “admin-populated demo data.”  
+
 ```bash
 cd admin
-# Initiate users information in users.json (email, password, groupNumber)
-# Ensure serviceAccountKey.json exists 
+# Register users listed in users.json
+# Ensure serviceAccountKey.json exists
 node registerUser.js
-```
-
-**Example `users.json`:**
-```json
-[
-  { "email": "user1@example.com", "password": "usedfortesting123", "groupNumber": 1 },
-  { "email": "user2@example.com", "password": "usedfortesting123", "groupNumber": 2 }
-]
 ```
 
 **Service account key**  
