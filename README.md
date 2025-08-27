@@ -182,6 +182,7 @@ During development, I addressed several technical challenges:
 - **High-Volume and detailed Logging** → Built a multi-layer xAPI logging system:
   - **Bundled fine-grained logs** capture keystrokes, clicks, and nearly every key or mouse movement, but are aggregated before writing to Firebase to avoid exceeding quota limits.
   - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage, so researchers can review full results easily without needing to piece together every micro-log.
+  - **Safe delivery + auto-flush**: All logs go through safeLogToFirebase for error handling, and logAutoFlush() periodically pushes batched logs (and flushes on logout/close) so no interactions are ever lost.
 - **Reliable Data Storage** → Combined:
   - **LocalStorage drafts** to prevent data loss on refresh or navigation.
   - **App-wide registry flush** to Firebase on logout for permanent storage    
