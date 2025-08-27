@@ -22,10 +22,11 @@ export function insertTextAt(textarea, currentValue, spokenText, onChange) {
     }, 0);
 }
 
-export function SpeechToTextButton({ onResult, className = '' }) {
+export function SpeechToTextButton({ logSystemGenerated, onClick, onResult, className = '' }) {
     const [isListening, setIsListening] = useState(false);
 
     const handleClick = () => {
+        onClick?.('btn-speechToText', 'speak')
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) { alert("Speech recognition is not supported in this browser."); return; }
 
@@ -35,7 +36,16 @@ export function SpeechToTextButton({ onResult, className = '' }) {
         rec.maxAlternatives = 1;
 
         rec.onstart = () => setIsListening(true);
-        rec.onresult = (e) => { onResult(e.results[0][0].transcript); setIsListening(false); };
+
+        rec.onresult = (e) => {
+            const transcript = e?.results?.[0]?.[0]?.transcript ?? '';
+            if (transcript.trim()) {
+                logSystemGenerated?.('speech-to-text', transcript);
+                onResult(transcript);
+            }
+            setIsListening(false);
+        };
+
         rec.onerror = () => { alert("Speech recognition failed. Please try again."); setIsListening(false); };
         rec.onend = () => setIsListening(false);
 

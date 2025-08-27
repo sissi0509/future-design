@@ -1,14 +1,15 @@
 import planQuestions from "../../data/questions/training/plan";
 import BasicQuestion from './BasicQuestion'
 
-export default function PlanPage({ onValidChange, uid }) {
+export default function PlanPage({ onValidChange, currentUser }) {
 
 
     return (
         <BasicQuestion
             onValidChange={onValidChange}
-            registryKey="training-plan"
-            uid={uid}
+            stage="training"
+            step="plan"
+            currentUser={currentUser}
             question={planQuestions}
         />
     );

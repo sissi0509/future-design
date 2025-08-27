@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import TextQuestion from "../questions/TextQuestion";
 import { useAnswersRegistry } from "../../context/AnswersRegistry";
 
-export default function BasicQuestion({ onValidChange, registryKey, uid, question }) {
+import { makeKeydownLogger, makeClickLogger, makeSystemGeneratedLogger } from "../../services/xapi/eventStatements";
+
+export default function BasicQuestion({ onValidChange, stage, step, currentUser, question }) {
+
+    const registryKey = `${stage}-${step}`;
+    const uid = currentUser?.uid;
 
     const storageKey = useMemo(
         () => (uid ? `train-${uid}-${registryKey}-draft` : `train-anon-${registryKey}-draft`),
@@ -62,6 +67,25 @@ export default function BasicQuestion({ onValidChange, registryKey, uid, questio
         onValidChange?.(isValid);
     }, [isValid, onValidChange]);
 
+    const onKeyDown = useMemo(() => {
+        return makeKeydownLogger({
+            user: currentUser,
+            stageId: stage,
+            stepKey: step,
+        });
+    }, [currentUser, stage, step]);
+
+
+
+    const logClick = useMemo(() => {
+        return makeClickLogger({ user: currentUser, stageId: stage, stepKey: step });
+    }, [currentUser, stage, step]);
+
+    const logSystemGenerated = useMemo(
+        () => makeSystemGeneratedLogger({ user: currentUser, stageId: stage, stepKey: step }),
+        [currentUser, stage, step]
+    );
+
     return (
         <div className="space-y-4">
             {/* <h2 className="text-xl font-semibold">{question.title}</h2> */}
@@ -72,6 +96,9 @@ export default function BasicQuestion({ onValidChange, registryKey, uid, questio
                 placeholder="Write your response here..."
                 minWords={question.minWords}
                 maxWords={question.maxWords}
+                onKeyDown={onKeyDown}
+                onClick={logClick}
+                logSystemGenerated={logSystemGenerated}
             />
         </div>
     );

@@ -15,9 +15,10 @@ export default function MultipleChoice({
     value,
     onChange,
     kind = 'single',
-    minSelect = 1,
-    maxSelect = Infinity,
     questions,
+    onToggle, //multi-choice inputs
+    onSelect, //For single-choice inputs
+    onClick,
 }) {
     const groupName = qkey;
     const opts = (kind === "likert" && (!options || options.length === 0))
@@ -38,16 +39,20 @@ export default function MultipleChoice({
                 .join(' ')
             : `${labelText}. Options are: ${opts.join(', ')}`;
 
+
+
+    const handleRadio = (opt) => {
+        onChange(opt);
+        onSelect?.(opt);
+    };
+
     const toggleMulti = (opt) => {
         const current = Array.isArray(value) ? value : [];
         const isOn = current.includes(opt);
-
-        if (isOn) {
-            onChange(current.filter((v) => v !== opt));
-        } else {
-            if (maxSelect && current.length >= maxSelect) return;
-            onChange([...current, opt]);
-        }
+        const next = isOn ? current.filter(v => v !== opt) : [...current, opt];
+        if (!isOn) return;
+        onChange(next);
+        onToggle?.(opt, !isOn);
     };
 
 
@@ -55,7 +60,7 @@ export default function MultipleChoice({
         <div>
             <div className="block font-medium mb-2">
                 {label}
-                <ReadAloudButton text={speechText} />
+                <ReadAloudButton onClick={onClick} text={speechText} />
             </div>
 
             {kind === "likert" && (
@@ -67,7 +72,7 @@ export default function MultipleChoice({
                                 name={groupName}
                                 value={opt}
                                 checked={value === opt}
-                                onChange={() => onChange(opt)}
+                                onChange={() => handleRadio(opt)}
                             />
                             <span className="text-sm">{opt}</span>
                         </label>
@@ -75,36 +80,6 @@ export default function MultipleChoice({
                 </div>
             )}
 
-            {/* {kind === 'likert-multi' && Array.isArray(questions) && (
-                <div className="space-y-5">
-                    {questions.map((q, i) => {
-                        const rowKey = q.key ?? String(i); // derive a stable key if none provided
-                        const name = `${groupName}__${rowKey}`;
-                        const current =
-                            value && typeof value === 'object' ? value[rowKey] : '';
-
-                        return (
-                            <div key={rowKey} className="flex flex-wrap items-center gap-y-3">
-                                <div className="min-w-[12rem] font-medium">{q.label}</div>
-                                <div className='flex flex-wrap gap-x-6 gap-y-2'>
-                                    {q.options.map((opt) => (
-                                        <label key={opt} className="inline-flex items-center gap-2">
-                                            <input
-                                                type="radio"
-                                                name={name}
-                                                value={opt}
-                                                checked={current === opt}
-                                                onChange={() => onChange({ ...(value || {}), [rowKey]: opt })}
-                                            />
-                                            <span className="text-sm">{opt}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )} */}
 
             {kind === "single" && (
                 <div className="space-y-2">
@@ -115,7 +90,7 @@ export default function MultipleChoice({
                                 name={groupName}
                                 value={opt}
                                 checked={value === opt}
-                                onChange={() => onChange(opt)}
+                                onChange={() => handleRadio(opt)}
                             />
                             <span>{opt}</span>
                         </label>

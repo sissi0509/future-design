@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import TextQuestion from "./TextQuestion";
-import MultipleChoice from "./MultipleChoice"; // single-choice
+import MultipleChoice from "./MultipleChoice";
+import { makeKeydownLogger, makeSelectLogger, makeToggleLogger, makeClickLogger, makeSystemGeneratedLogger } from '../../services/xapi/eventStatements'
 
 export default function Questionnaire({
     questions = [],
@@ -9,6 +10,8 @@ export default function Questionnaire({
     autosaveKey,
     submitting = false,
     onChangeAnswers,
+    stageId,
+    currentUser
 }) {
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -115,9 +118,38 @@ export default function Questionnaire({
     const submit = (e) => {
         e.preventDefault();
         if (!currentValid) return;
-        if (autosaveKey) localStorage.removeItem(autosaveKey); // clear on success
+        if (autosaveKey) localStorage.removeItem(autosaveKey);
         onSubmit?.(answers);
     };
+
+    const onKeyDown = makeKeydownLogger({
+        user: currentUser,
+        stageId: stageId,
+        stepKey: current.key,
+    });
+
+    const onSelect = makeSelectLogger({
+        user: currentUser,
+        stageId: stageId,
+        stepKey: current.key,
+
+    })
+
+    const onToggle = makeToggleLogger({
+        user: currentUser,
+        stageId: stageId,
+        stepKey: current.key,
+
+    })
+
+    const logClick = useMemo(() => {
+        return makeClickLogger({ user: currentUser, stageId, stepKey: current?.key });
+    }, [currentUser, stageId, current?.key]);
+
+    const logSystemGenerated = useMemo(
+        () => makeSystemGeneratedLogger({ user: currentUser, stageId, stepKey: current?.key }),
+        [currentUser, stageId, current?.key]
+    );
 
     // Avoid flashing the first question before restore
     if (!initialized) {
@@ -152,6 +184,9 @@ export default function Questionnaire({
                     onChange={(val) => setValue(current.key, val)}
                     minWords={current.minWords}
                     maxWords={current.maxWords}
+                    onKeyDown={onKeyDown}
+                    onClick={logClick}
+                    logSystemGenerated={logSystemGenerated}
                 />
             )}
 
@@ -167,6 +202,8 @@ export default function Questionnaire({
                                 value={answers[q.key] ?? ''}
                                 onChange={(val) => setValue(q.key, val)}
                                 qkey={q.key}
+                                onSelect={onSelect}
+                                onClick={logClick}
                             />
                         ))}
                     </div>
@@ -182,6 +219,8 @@ export default function Questionnaire({
                         onChange={(val) => setValue(current.key, val)}
                         kind={current.kind || 'single'}
                         qkey={current.key}
+                        onSelect={onSelect}
+                        onToggle={onToggle}
                     />
                 )
             )
@@ -192,8 +231,12 @@ export default function Questionnaire({
                 <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={back}
+                    onClick={() => {
+                        logClick("btn-next", "Next");
+                        back();
+                    }}
                     disabled={step === 0}
+
                 >
                     Back
                 </button>
@@ -202,7 +245,10 @@ export default function Questionnaire({
                     <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={next}
+                        onClick={(e) => {
+                            logClick("btn-next", "Next");
+                            next(e);
+                        }}
                         disabled={!currentValid}
                     >
                         Next
@@ -211,7 +257,11 @@ export default function Questionnaire({
                     <button
                         type="submit"
                         className="btn btn-success"
-                        // 🔒 don’t allow submit until last question is valid *and* the delay has passed
+                        onClick={() => {
+                            logClick("btn-submit", "Submit");
+
+                        }}
+                        // don’t allow submit until last question is valid *and* the delay has passed
                         disabled={!currentValid || submitting || !submitVisible}
                     >
                         {submitting ? "Submitting…" : "Submit"}

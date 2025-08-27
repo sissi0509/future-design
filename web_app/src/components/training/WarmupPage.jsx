@@ -1,14 +1,15 @@
 import warmupQuestions from "../../data/questions/training/warmup";
 import BasicQuestion from './BasicQuestion'
 
-export default function WarmupPage({ onValidChange, uid }) {
+export default function WarmupPage({ onValidChange, currentUser }) {
 
 
     return (
         <BasicQuestion
             onValidChange={onValidChange}
-            registryKey="training-warmup"
-            uid={uid}
+            stage="training"
+            step="warmup"
+            currentUser={currentUser}
             question={warmupQuestions}
         />
     );

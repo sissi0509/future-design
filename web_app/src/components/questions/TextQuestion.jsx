@@ -9,6 +9,9 @@ export default function TextQuestion({
     placeholder = '',
     minWords = 0,
     maxWords = Infinity,
+    onKeyDown,
+    onClick,
+    logSystemGenerated
 }) {
     const textareaRef = useRef(null);
     const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
@@ -26,7 +29,7 @@ export default function TextQuestion({
                         {part}
                     </p>
                 ))}
-                <ReadAloudButton text={speechText} />
+                <ReadAloudButton onClick={onClick} text={speechText} />
             </div>
 
             <div className="relative w-full mt-4">
@@ -37,9 +40,10 @@ export default function TextQuestion({
                     className="textarea w-full"
                     rows={8}
                     placeholder={placeholder}
+                    onKeyDown={onKeyDown}
                 />
                 <div className="absolute right-2 bottom-2">
-                    <SpeechToTextButton onResult={(spoken) =>
+                    <SpeechToTextButton logSystemGenerated={logSystemGenerated} onClick={onClick} onResult={(spoken) =>
                         insertTextAt(textareaRef.current, value, spoken, onChange)
                     } />
                 </div>

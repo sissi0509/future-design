@@ -6,6 +6,7 @@ import { logClientError } from '../services/errorHandle/logClientError';
 import Header from '../components/Header';
 import Auth from '../components/User/Auth'
 import { sendAnswerStatement } from '../services/xapi/AnswersStatement';
+import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
 
 import Welcome from './Welcome';
 import Consent from './Consent';
@@ -94,6 +95,7 @@ export default function Home() {
 
 
         await sendAnswerStatement(currentUser, type, answers);
+        await flushStageBundleToGlobalXapi({ user: currentUser, stageId: type })
 
 
     }
@@ -131,6 +133,7 @@ export default function Home() {
         {
             path: 'progress.training.trainingCompleted',
             render: () => <Training
+                currentUser={currentUser}
                 group={groupNumber}
                 onComplete={() => markComplete('progress.training.trainingCompleted')}
             />
@@ -140,6 +143,7 @@ export default function Home() {
             path: 'progress.postTestCompleted',
             render: () => (
                 <PostTest
+                    currentUser={currentUser}
                     onSubmit={(answers) =>
                         saveAndComplete({ type: 'postTest', flagPath: 'progress.postTestCompleted', answers })
                     }
@@ -151,6 +155,7 @@ export default function Home() {
             path: 'progress.surveyCompleted',
             render: () => (
                 <Survey
+                    currentUser={currentUser}
                     onSubmit={(answers) =>
                         saveAndComplete({ type: 'survey', flagPath: 'progress.surveyCompleted', answers })
                     }

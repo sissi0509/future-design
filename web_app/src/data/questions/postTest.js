@@ -58,7 +58,7 @@ const postTestQuestions = [
         key: 'post5',
         label:
             '5) What aspect of your long-term vision (e.g., 5 years from now) does your 2-week plan connect to?',
-        minWords: 5,
+        minWords: 1,
         maxWords: 120,
     },
 

@@ -1,5 +1,3 @@
-// surveyQuestions.js
-
 export const LIKERT = [
     'Strongly agree',
     'Agree',

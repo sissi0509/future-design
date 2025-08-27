@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "../components/User/AuthSetUp";
 import Questionnaire from "../components/questions/Questionnaire";
 import surveyQuestions from "../data/questions/survey";
 import { useAnswersRegistry } from "../context/AnswersRegistry";
 
-export default function Survey({ onSubmit }) {
-    const { currentUser } = useAuth();
+export default function Survey({ currentUser, onSubmit }) {
+
     const uid = currentUser?.uid;
     const { set, remove } = useAnswersRegistry();
     const [submitting, setSubmitting] = useState(false);
@@ -30,6 +29,8 @@ export default function Survey({ onSubmit }) {
             submitting={submitting}
             onChangeAnswers={(answers) => set(key, { type: "survey", answers })}
             onSubmit={handleSubmit}
+            stageId={key}
+            currentUser={currentUser}
         />
     );
 }

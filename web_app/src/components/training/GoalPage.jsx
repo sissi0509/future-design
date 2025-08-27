@@ -7,10 +7,11 @@ import goalQuestions from "../../data/questions/training/goal";
 import BasicQuestion from './BasicQuestion'
 
 
-export default function GoalPage({ onValidChange, uid }) {
+export default function GoalPage({ onValidChange, currentUser }) {
     const [seed, setSeed] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const uid = currentUser?.uid;
     useEffect(() => {
         if (!uid) {
             setSeed(goalQuestions);
@@ -47,8 +48,9 @@ export default function GoalPage({ onValidChange, uid }) {
         <div>
             <BasicQuestion
                 onValidChange={onValidChange}
-                registryKey="training-goal"
-                uid={uid}
+                stage='training'
+                step='goal'
+                currentUser={currentUser}
                 question={goalQuestions}
             />
             <div className="rounded-lg border bg-base-100 p-4 mt-8">

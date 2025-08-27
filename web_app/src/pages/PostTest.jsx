@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "../components/User/AuthSetUp";
 import Questionnaire from "../components/questions/Questionnaire";
 import postTestQuestions from "../data/questions/postTest";
 import { useAnswersRegistry } from "../context/AnswersRegistry";
 
-export default function PostTest({ onSubmit }) {
-    const { currentUser } = useAuth();
+export default function PostTest({ currentUser, onSubmit }) {
     const uid = currentUser?.uid;
     const { set, remove } = useAnswersRegistry();
     const [submitting, setSubmitting] = useState(false);
@@ -30,6 +28,8 @@ export default function PostTest({ onSubmit }) {
             submitting={submitting}
             onChangeAnswers={(answers) => set(key, { type: "postTest", answers })}
             onSubmit={handleSubmit}
+            stageId={key}
+            currentUser={currentUser}
         />
     );
 }

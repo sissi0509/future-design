@@ -78,7 +78,7 @@ export async function flushStageBundleToGlobalXapi({ user, stageId }) {
             const seq = nextBundleSeq(uid, stageId);
 
             const payload = {
-                kind: "bundle",
+                kind: "singleMovementBundle",
                 uid,
                 stageId,
                 seq,

@@ -2,7 +2,7 @@ import strategyQuestions from "../../data/questions/training/strategy";
 import BasicQuestion from './BasicQuestion'
 import instructionContent from "../../data/questions/training/instruction";
 
-export default function StrategyPage({ onValidChange, uid }) {
+export default function StrategyPage({ onValidChange, currentUser }) {
     const instructions = instructionContent.table.rows.flat();
     const title = instructionContent.table.title;
 
@@ -38,8 +38,9 @@ export default function StrategyPage({ onValidChange, uid }) {
 
             <BasicQuestion
                 onValidChange={onValidChange}
-                registryKey="training-strategy"
-                uid={uid}
+                stage="training"
+                step="strategy"
+                currentUser={currentUser}
                 question={strategyQuestions}
             />
 

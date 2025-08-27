@@ -2,10 +2,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/Firebase";
-import { useAuth } from "../components/User/AuthSetUp";
 import { logClientError } from "../services/errorHandle/logClientError";
 import { useAnswersRegistry } from "../context/AnswersRegistry"
 import { sendAnswerStatement } from "../services/xapi/AnswersStatement";
+import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
+import { makeKeydownLogger, makeClickLogger } from '../services/xapi/eventStatements'
 
 import WarmupPage from "../components/training/WarmupPage";
 import GoalPage from "../components/training/GoalPage";
@@ -44,8 +45,7 @@ function buildSteps(group) {
 const MIN = 18 * 16;
 const MAX = 64 * 16;
 
-export default function Training({ group, onComplete }) {
-    const { currentUser } = useAuth();
+export default function Training({ currentUser, group, onComplete }) {
     const uid = currentUser?.uid;
 
     const steps = useMemo(() => buildSteps(group), [group]);
@@ -94,6 +94,11 @@ export default function Training({ group, onComplete }) {
     const aiEnabled = !!uid && ai === true; // only for group 3 steps (except warmup per buildSteps)
 
     const { remove: regRemove } = useAnswersRegistry();
+
+    const logClick = useMemo(() => {
+        return makeClickLogger({ user: currentUser, stageId: 'training', stepKey: stepKey });
+    }, [currentUser, stepKey]);
+
     const handleFinalSubmit = async () => {
         if (!isLast || !allValid || submitting) return;
 
@@ -108,11 +113,13 @@ export default function Training({ group, onComplete }) {
         }
 
         setSubmitting(true);
+
+
         try {
             let answerObj = {}
             for (const s of steps) {
                 const draft = readDraft(uid, s.key) || {};
-                answerObj[s.key] = String(value);
+                answerObj[s.key] = String(draft?.text ?? '');
                 await setDoc(
                     doc(db, "sessionInfo", uid, "responses", s.key),
                     {
@@ -137,6 +144,8 @@ export default function Training({ group, onComplete }) {
             try {
                 for (const s of steps) regRemove(s.key);
             } catch { }
+
+            await flushStageBundleToGlobalXapi({ user: currentUser, stageId: 'training' })
 
             onComplete?.();
         } catch (e) {
@@ -177,16 +186,29 @@ export default function Training({ group, onComplete }) {
 
                         {/* scrollable step body */}
                         <div className="p-6 flex-1 overflow-auto">
-                            <Comp onValidChange={handleCurrentValidChange} uid={uid} />
+                            <Comp onValidChange={handleCurrentValidChange} currentUser={currentUser} />
                         </div>
 
                         {/* bottom bar: nav + submit */}
                         <div className="px-6 py-4 border-t flex items-center justify-between">
                             <div className="flex gap-2">
-                                <button className="btn" onClick={goPrev} disabled={isFirst}>
+                                <button
+                                    className="btn"
+                                    onClick={() => {
+                                        logClick("btn-previous", "Previous");
+                                        goPrev();
+                                    }}
+
+                                    disabled={isFirst}>
                                     ‹ Previous
                                 </button>
-                                <button className="btn" onClick={goNext} disabled={isLast}>
+                                <button
+                                    className="btn"
+                                    onClick={() => {
+                                        logClick("btn-next", "Next");
+                                        goNext();
+                                    }}
+                                    disabled={isLast}>
                                     Next ›
                                 </button>
                             </div>
@@ -194,7 +216,10 @@ export default function Training({ group, onComplete }) {
                             {isLast && (
                                 <button
                                     className={`btn ${allValid ? "btn-primary" : "btn-disabled"}`}
-                                    onClick={handleFinalSubmit}
+                                    onClick={() => {
+                                        logClick("btn-submit", "Submit");
+                                        handleFinalSubmit()
+                                    }}
                                     disabled={!allValid || submitting}
                                 >
                                     {submitting ? "Submitting…" : "Submit"}

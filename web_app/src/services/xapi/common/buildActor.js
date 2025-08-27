@@ -8,3 +8,11 @@ export function buildActor(user) {
         },
     };
 }
+
+export function buildSystemActor(source = "system") {
+    return {
+        objectType: "Agent",
+        name: source,
+        mbox: `mailto:${source}@futuredesign.app`,
+    };
+}

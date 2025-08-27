@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 
-export default function ReadAloudButton({ text, className = '' }) {
+export default function ReadAloudButton({ text, className = '', onClick }) {
     const [isSpeaking, setIsSpeaking] = useState(false);
 
 
     const handleClick = () => {
+        onClick?.('btn-readAloud', 'ReadAloud')
 
         if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
             alert(" Your browser does not support text-to-speech.");

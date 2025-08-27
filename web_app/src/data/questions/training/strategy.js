@@ -1,7 +1,7 @@
 const strategyQuestions = {
     title: "Strategy Question",
     label: `Note briefly in the space below any points which seem particularly significant.`,
-    minWords: 40,
+    minWords: 2,
     maxWords: 400,
 }
 

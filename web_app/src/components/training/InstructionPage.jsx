@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import instructionContent from "../../data/questions/training/instruction";
 
-export default function InstructionPage({ onValidChange, uid }) {
+export default function InstructionPage({ onValidChange, currentUser }) {
+    const uid = currentUser?.uid;
     const storageKey = `train-${uid ?? "anon"}-training-instruction-draft`;
 
     // Mark valid + persist once on mount
