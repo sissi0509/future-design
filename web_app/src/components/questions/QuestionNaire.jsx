@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import TextQuestion from "./TextQuestion";
 import MultipleChoice from "./MultipleChoice";
+import LikertMatrix from "./LikertMatrix";
 import { makeKeydownLogger, makeSelectLogger, makeToggleLogger, makeClickLogger, makeSystemGeneratedLogger } from '../../services/xapi/eventStatements'
 
 export default function Questionnaire({
@@ -88,10 +89,11 @@ export default function Questionnaire({
                 return arr.length >= 1;
             }
 
-            if (kind === "likert-multi") {
-                return current.questions.every(q => {
-                    const val = answers[q.key];
-                    return !!val;
+            if (kind === "likert-matrix") {
+                const rows = q.rows || [];
+                return rows.every(r => {
+                    const rowKey = `${q.key}-${(r.key ?? r.label)}`;
+                    return !!answers[rowKey];
                 });
             }
 
@@ -191,22 +193,17 @@ export default function Questionnaire({
             )}
 
             {current?.type === "multiple" && (
-                current.kind === 'likert-multi' ? (
-                    <div className="space-y-4">
-                        {current.questions.map((q) => (
-                            <MultipleChoice
-                                key={q.key}
-                                label={q.label}
-                                options={q.options}
-                                kind="likert"
-                                value={answers[q.key] ?? ''}
-                                onChange={(val) => setValue(q.key, val)}
-                                qkey={q.key}
-                                onSelect={onSelect}
-                                onClick={logClick}
-                            />
-                        ))}
-                    </div>
+                current.kind === 'likert-matrix' ? (
+                    <LikertMatrix
+                        baseKey={current.key}               // "s2"
+                        label={current.label}
+                        rows={current.rows}                 // emotions
+                        columns={current.columns}           // frequencies
+                        answers={answers}
+                        onChangeRow={(rowKey, colVal) => setValue(`${current.key}-${rowKey}`, colVal)}
+                        onSelect={onSelect}
+                        onClick={logClick}
+                    />
                 ) : (
                     <MultipleChoice
                         label={current.label}

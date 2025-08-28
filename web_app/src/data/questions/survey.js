@@ -6,29 +6,8 @@ export const LIKERT = [
     'Strongly disagree',
 ];
 
-export const FREQS = [
-    'Never',
-    'Rarely',
-    'Occasionally',
-    'Frequently',
-    'Very frequently',
-];
-
-export const EMOTIONS = [
-    'Bored',
-    'Curious',
-    'Confused',
-    'Happy',
-    'Impatient',
-    'Humor',
-    'Irritated',
-    'Joy',
-    'Overwhelmed',
-    'Optimistic',
-];
 
 const surveyQuestions = [
-    // 1) Process difficulty
     {
         type: 'multiple',
         kind: 'likert',
@@ -43,29 +22,32 @@ const surveyQuestions = [
         ],
     },
 
-    // 2) Two-row Likert (treated as ONE question)
-    // Row 1: pick an emotion (use Likert layout with EMOTIONS as options)
-    // Row 2: pick the frequency (FREQ5)
     {
-        type: 'multiple',
-        kind: 'likert-multi',
-        key: 's2',
-        label: '2) While developing your 2-week plan…',
-        questions: [
-            {
-                key: 's2-emotion',
-                label: 'Which emotion best describes how you felt?',
-                options: EMOTIONS,
-            },
-            {
-                key: 's2-frequency',
-                label: 'How frequently did you feel that emotion?',
-                options: FREQS,
-            },
+        type: "multiple",
+        kind: "likert-matrix",
+        key: "s2",
+        label: "While developing your 2-week plan, did you feel:",
+        rows: [
+            { key: "bored", label: "Bored" },
+            { key: "curious", label: "Curious" },
+            { key: "confused", label: "Confused" },
+            { key: "happy", label: "Happy" },
+            { key: "impatient", label: "Impatient" },
+            { key: "humor", label: "Humor" },
+            { key: "irritated", label: "Irritated" },
+            { key: "joy", label: "Joy" },
+            { key: "overwhelmed", label: "Overwhelmed" },
+            { key: "optimistic", label: "Optimistic" }
         ],
+        columns: [ // shared options for all rows
+            { key: "never", label: "Never" },
+            { key: "rarely", label: "Rarely" },
+            { key: "occasionally", label: "Occasionally" },
+            { key: "frequently", label: "Frequently" },
+            { key: "very_frequently", label: "Very frequently" }
+        ]
     },
 
-    // 3) Satisfaction with plan
     {
         type: 'multiple',
         kind: 'likert',
@@ -74,7 +56,7 @@ const surveyQuestions = [
         options: LIKERT,
     },
 
-    // 4) Generative AI usage
+
     {
         type: 'multiple',
         kind: 'single',
@@ -87,7 +69,6 @@ const surveyQuestions = [
         ],
     },
 
-    // 5) Plans for next summer
     {
         type: 'multiple',
         kind: 'single',
@@ -101,7 +82,6 @@ const surveyQuestions = [
         ],
     },
 
-    // 6) Wanted more support
     {
         type: 'multiple',
         kind: 'likert',
@@ -119,7 +99,7 @@ const surveyQuestions = [
         options: ['Yes', 'No'],
     },
 
-    // 8) Open-ended comments
+
     {
         type: 'text',
         key: 's8',

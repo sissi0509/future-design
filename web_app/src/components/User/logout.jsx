@@ -15,7 +15,15 @@ export default function Logout() {
     const handleLogOut = async () => {
         if (busy) return;
         setBusy(true);
-        alert('Without submission, your current session will not be saved.')
+
+        const confirmLogout = window.confirm(
+            "Without submission, your current session will not be saved. Do you still want to log out?"
+        );
+        if (!confirmLogout) {
+            setBusy(false)
+            return; //stop logout if Cancel pressed
+        }
+
         try {
             await flushToResponses();
             await sendLogoutStatement(user);

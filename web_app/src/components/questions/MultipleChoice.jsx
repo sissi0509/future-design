@@ -29,20 +29,12 @@ export default function MultipleChoice({
 
     const labelParts = Array.isArray(label) ? label : [label];
     const labelText = labelParts.join("\n\n");
-    const speechText =
-        kind === 'likert-multi' && questions.length
-            ? `${labelText}. ` +
-            questions
-                .map((q, i) => {
-                    return `${i + 1}: ${q.label}. Options are: ${q.options.join(', ')}`;
-                })
-                .join(' ')
-            : `${labelText}. Options are: ${opts.join(', ')}`;
+    const speechText = `${labelText}. Options are: ${opts.join(', ')}`;
 
 
 
     const handleRadio = (opt) => {
-        onChange(opt);
+        onChange?.(opt);
         onSelect?.(opt);
     };
 
@@ -51,7 +43,7 @@ export default function MultipleChoice({
         const isOn = current.includes(opt);
         const next = isOn ? current.filter(v => v !== opt) : [...current, opt];
         if (!isOn) return;
-        onChange(next);
+        onChange?.(next);
         onToggle?.(opt, !isOn);
     };
 
