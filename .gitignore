@@ -197,6 +197,7 @@ thumb
 sketch
 
 ### VisualStudioCode ###
+./viscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
