@@ -1,7 +1,7 @@
 import warmupQuestions from "../../data/questions/training/warmup";
 import BasicQuestion from './BasicQuestion'
 
-export default function WarmupPage({ onValidChange, currentUser }) {
+export default function WarmupPage({ onValidChange, currentUser, onKeyDown, logClick, logSystemGenerated }) {
 
 
     return (
@@ -11,6 +11,9 @@ export default function WarmupPage({ onValidChange, currentUser }) {
             step="warmup"
             currentUser={currentUser}
             question={warmupQuestions}
+            logClick={logClick}
+            logSystemGenerated={logSystemGenerated}
+            onKeyDown={onKeyDown}
         />
     );
 }

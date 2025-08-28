@@ -180,7 +180,7 @@ During development, I addressed several technical challenges:
 
 - **Rich AI Chatbox** → Implemented branching so users can edit past messages and fork new conversations.
 - **High-Volume and detailed Logging** → Built a multi-layer xAPI logging system:
-  - **Bundled fine-grained logs** capture keystrokes, clicks, and nearly every key or mouse movement, but are aggregated before writing to Firebase to avoid exceeding quota limits.
+  - **Bundled fine-grained logs** capture keystrokes, clicks, and scrolls, nearly every key or mouse movement, but are aggregated before writing to Firebase to avoid exceeding quota limits.
   - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage, so researchers can review full results easily without needing to piece together every micro-log.
 -**Reliability & Error Handling** →
 

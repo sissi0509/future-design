@@ -1,11 +1,6 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState } from "react";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
-import {
-    makeKeydownLogger,
-    makeClickLogger,
-    makeSystemGeneratedLogger,
-} from "../../services/xapi/eventStatements";
 
 const OPEN_TEXT = "Hi! Ask me anything as you work."
 
@@ -13,9 +8,11 @@ export default function ChatBoxAI({
     title = "AI Coach",
     registryKey = "trainingAiConversation",
     currentUser,
-    stageId,
-    stepId,
     maxMessagesToSave = 200,
+    onKeyDown,
+    logClick,
+    logSystemGenerated,
+    onScroll
 }) {
     const storageKey = `chat-${registryKey}-${currentUser.uid}`;
     const textareaRef = useRef(null);
@@ -24,20 +21,6 @@ export default function ChatBoxAI({
         role: "ai",
         text: OPEN_TEXT,
     }));
-
-    const logKeydown = useMemo(
-        () => makeKeydownLogger({ user: currentUser, stageId, stepKey: stepId }),
-        [currentUser, stageId, stepId]
-    );
-    const logClick = useMemo(
-        () => makeClickLogger({ user: currentUser, stageId, stepKey: stepId }),
-        [currentUser, stageId, stepId]
-    );
-    const logSystemGenerated = useMemo(
-        () => makeSystemGeneratedLogger({ user: currentUser, stageId, stepKey: stepId }),
-        [currentUser, stageId, stepId]
-    );
-
 
     const {
         state: { branches, activeId, messages, input, isThinking, editingIndex, editDraft },
@@ -60,7 +43,10 @@ export default function ChatBoxAI({
     });
 
     return (
-        <div className="h-full flex flex-col border rounded-xl overflow-hidden">
+        <div
+            className="h-full flex flex-col border rounded-xl overflow-hidden"
+            onScroll={onScroll}
+        >
             <div className="px-4 py-3 font-semibold bg-base-200 flex items-center gap-2">
                 <span>{title}</span>
                 <div className="ml-auto" />
@@ -93,7 +79,7 @@ export default function ChatBoxAI({
                                                 className="textarea w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
                                                 value={editDraft}
                                                 onChange={(e) => setEditDraft(e.target.value)}
-                                                onKeyDown={logKeydown}
+                                                onKeyDown={onKeyDown}
                                                 autoFocus
                                             />
                                             <div className="mt-3 flex justify-end gap-2">
@@ -195,7 +181,7 @@ export default function ChatBoxAI({
                         rows={5}
                         className="textarea textarea-bordered w-full rounded-lg text-base pr-28"
                         onKeyDown={(e) => {
-                            logKeydown(e);
+                            onKeyDown(e);
                             if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
                                 logClick("btn-send", "Send(Enter)");
@@ -215,6 +201,10 @@ export default function ChatBoxAI({
                         />
                     </div>
                 </div>
+
+                <p className="mt-1 text-center text-base-content/60">
+                    AI can make mistakes, so double-check it.
+                </p>
             </form>
         </div>
     );

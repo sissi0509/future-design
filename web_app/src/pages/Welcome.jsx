@@ -3,7 +3,7 @@ import { logClientError } from "../services/errorHandle/logClientError";
 import { appendXapiToStage, flushStageBundleToGlobalXapi } from "../services/xapi/xapiBundles";
 import { makeFunctionalClickStatement } from "../services/xapi/eventStatements";
 
-export default function Welcome({ currentUser, onComplete }) {
+export default function Welcome({ currentUser, onComplete, logClick }) {
     const [submitting, setSubmitting] = useState(false);
 
     const handleStart = async () => {

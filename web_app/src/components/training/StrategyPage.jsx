@@ -2,7 +2,7 @@ import strategyQuestions from "../../data/questions/training/strategy";
 import BasicQuestion from './BasicQuestion'
 import instructionContent from "../../data/questions/training/instruction";
 
-export default function StrategyPage({ onValidChange, currentUser }) {
+export default function StrategyPage({ onValidChange, currentUser, onKeyDown, logClick, logSystemGenerated }) {
     const instructions = instructionContent.table.rows.flat();
     const title = instructionContent.table.title;
 
@@ -26,6 +26,7 @@ export default function StrategyPage({ onValidChange, currentUser }) {
                         type="button"
                         className="btn btn-xs"
                         onClick={() => {
+                            logClick('btn-instruction', `item${i + 1}`)
                             document
                                 .getElementById(`item${i + 1}`)
                                 ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
@@ -42,6 +43,9 @@ export default function StrategyPage({ onValidChange, currentUser }) {
                 step="strategy"
                 currentUser={currentUser}
                 question={strategyQuestions}
+                logClick={logClick}
+                logSystemGenerated={logSystemGenerated}
+                onKeyDown={onKeyDown}
             />
 
         </div >

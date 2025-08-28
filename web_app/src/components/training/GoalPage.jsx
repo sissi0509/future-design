@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../config/Firebase";
 import { logClientError } from "../../services/errorHandle/logClientError";
@@ -7,7 +7,7 @@ import goalQuestions from "../../data/questions/training/goal";
 import BasicQuestion from './BasicQuestion'
 
 
-export default function GoalPage({ onValidChange, currentUser }) {
+export default function GoalPage({ onValidChange, currentUser, onKeyDown, logClick, logSystemGenerated }) {
     const [previousResponses, setPreviousResponses] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -52,6 +52,9 @@ export default function GoalPage({ onValidChange, currentUser }) {
                 step='goal'
                 currentUser={currentUser}
                 question={goalQuestions}
+                logClick={logClick}
+                logSystemGenerated={logSystemGenerated}
+                onKeyDown={onKeyDown}
             />
             <div className="rounded-lg border bg-base-100 p-4 mt-8">
                 <h3 className="font-semibold mb-2">Your previous responses:</h3>

@@ -6,7 +6,7 @@ import { logClientError } from "../services/errorHandle/logClientError";
 import { useAnswersRegistry } from "../context/AnswersRegistry"
 import { sendAnswerStatement, sendConversationTranscript } from "../services/xapi/AnswersStatement";
 import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
-import { makeKeydownLogger, makeClickLogger } from '../services/xapi/eventStatements'
+import { makeClickLogger, makeKeydownLogger, makeSystemGeneratedLogger, makeSelectLogger, makeScrollLogger } from '../services/xapi/eventStatements'
 import { buildConversationTranscriptFromStored } from '../components/training/chatboxSetup/chatUtils';
 
 
@@ -31,6 +31,8 @@ function readDraft(uid, key) {
         return {};
     }
 }
+
+const STAGE_ID = 'training'
 
 // Build ordered steps for the given group
 function buildSteps(group) {
@@ -100,9 +102,41 @@ export default function Training({ currentUser, group, onComplete }) {
 
     const { remove: regRemove } = useAnswersRegistry();
 
-    const logClick = useMemo(() => {
-        return makeClickLogger({ user: currentUser, stageId: 'training', stepKey: stepKey });
-    }, [currentUser, stepKey]);
+
+    const buildLoggerBundle = (user, stageId, stepKey) => ({
+        onKeyDown: makeKeydownLogger({ user, stageId, stepKey }),
+        logClick: makeClickLogger({ user, stageId, stepKey }),
+        logSystemGenerated: makeSystemGeneratedLogger({ user, stageId, stepKey }),
+    });
+
+
+    const baseLogger = useMemo(
+        () => buildLoggerBundle(currentUser, STAGE_ID, stepKey),
+        [currentUser, stepKey]
+    );
+
+    const aiStepKey = `${stepKey}-AiChatBox`;
+    const aiLogger = useMemo(
+        () => buildLoggerBundle(currentUser, STAGE_ID, aiStepKey),
+        [currentUser, stepKey] // aiStepKey derives from stepKey
+    );
+
+    const logScrollTraining = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-TrainingSection`, throttleMs: 200 }),
+        [currentUser, stepKey]
+    );
+    const logScrollStepBody = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-StepBody`, throttleMs: 200 }),
+        [currentUser, stepKey]
+    );
+    const logScrollAI = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiChatBox`, throttleMs: 200 }),
+        [currentUser, stepKey]
+    );
+
+
+
+
 
     const handleFinalSubmit = async () => {
         if (!isLast || !allValid || submitting) return;
@@ -190,7 +224,10 @@ export default function Training({ currentUser, group, onComplete }) {
     if (!steps.length) return null;
 
     return (
-        <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28">
+        <div
+            className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28"
+            onScroll={logScrollTraining}
+        >
             <div className="border rounded-xl overflow-hidden h-[85vh]">
                 <div className="relative flex h-full">
                     {/* LEFT: step content */}
@@ -205,7 +242,7 @@ export default function Training({ currentUser, group, onComplete }) {
                                 <button
                                     className="btn btn-sm btn-outline"
                                     onClick={() => {
-                                        logClick("btn-AiCoach", collapsed ? "ShowAIcoach" : "HideAIcoach");
+                                        baseLogger.logClick("btn-AiCoach", collapsed ? "ShowAIcoach" : "HideAIcoach");
                                         setCollapsed((c) => !c);
                                     }}
                                     title={collapsed ? "Show AI Coach" : "Hide AI Coach"}
@@ -216,8 +253,16 @@ export default function Training({ currentUser, group, onComplete }) {
                         </div>
 
                         {/* scrollable step body */}
-                        <div className="p-6 flex-1 overflow-auto">
-                            <Comp onValidChange={handleCurrentValidChange} currentUser={currentUser} />
+                        <div
+                            className="p-6 flex-1 overflow-auto"
+                            onScroll={logScrollStepBody}
+                        >
+                            <Comp
+                                onValidChange={handleCurrentValidChange}
+                                logClick={baseLogger.logClick}
+                                logSystemGenerated={baseLogger.logSystemGenerated}
+                                onKeyDown={baseLogger.onKeyDown}
+                                currentUser={currentUser} />
                         </div>
 
                         {/* bottom bar: nav + submit */}
@@ -226,7 +271,7 @@ export default function Training({ currentUser, group, onComplete }) {
                                 <button
                                     className="btn"
                                     onClick={() => {
-                                        logClick("btn-previous", "Previous");
+                                        baseLogger.logClick("btn-previous", "Previous");
                                         goPrev();
                                     }}
 
@@ -236,7 +281,7 @@ export default function Training({ currentUser, group, onComplete }) {
                                 <button
                                     className="btn"
                                     onClick={() => {
-                                        logClick("btn-next", "Next");
+                                        baseLogger.logClick("btn-next", "Next");
                                         goNext();
                                     }}
                                     disabled={isLast}>
@@ -248,7 +293,7 @@ export default function Training({ currentUser, group, onComplete }) {
                                 <button
                                     className={`btn ${allValid ? "btn-primary" : "btn-disabled"}`}
                                     onClick={() => {
-                                        logClick("btn-submit", "Submit");
+                                        baseLogger.logClick("btn-submit", "Submit");
                                         handleFinalSubmit()
                                     }}
                                     disabled={!allValid || submitting}
@@ -270,9 +315,11 @@ export default function Training({ currentUser, group, onComplete }) {
                         >
                             <ChatBoxAI
                                 title="AI Coach"
-                                stepId={`${stepKey}-AiChatBox`}
                                 currentUser={currentUser}
-                                stageId="training"
+                                logClick={aiLogger.logClick}
+                                logSystemGenerated={aiLogger.logSystemGenerated}
+                                onKeyDown={aiLogger.onKeyDown}
+                                onScroll={logScrollAI}
                             />
                         </ResizableSidebar>
                     )}
