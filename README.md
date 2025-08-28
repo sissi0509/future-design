@@ -89,9 +89,9 @@ These are not committed to GitHub, so you need to create your own `.env.local` f
 The **admin scripts** let you register users in Firebase with a pre-assigned `groupNumber` and optional `trainingSeed` data.  
 
 - `groupNumber` → assigns which experimental condition a user belongs to.  
-- `trainingSeed` → pre-populated prompts and example answers, generated from the **Qualtrics pre-survey** before users arrive at this app.  
+- `previousResponses` 
+  - pre-populated prompts and answers, generated from the **Qualtrics pre-survey** before users arrive at this app.  
   - These values can be shown again in training to **refresh the user’s memory** and scaffold their reflection.  
-  - `trainingSeed` is not related to ML model training — think of it as “admin-populated demo data.”  
 
 ```bash
 cd admin
