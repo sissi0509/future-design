@@ -6,7 +6,7 @@ import { logClientError } from "../services/errorHandle/logClientError";
 import { useAnswersRegistry } from "../context/AnswersRegistry"
 import { sendAnswerStatement, sendConversationTranscript } from "../services/xapi/AnswersStatement";
 import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
-import { makeClickLogger, makeKeydownLogger, makeSystemGeneratedLogger, makeSelectLogger, makeScrollLogger } from '../services/xapi/eventStatements'
+import { makeClickLogger, makeKeydownLogger, makeSystemGeneratedLogger, makeResizeLogger, makeScrollLogger, makeToggleLogger } from '../services/xapi/eventStatements'
 import { buildConversationTranscriptFromStored } from '../components/training/chatboxSetup/chatUtils';
 
 
@@ -97,6 +97,8 @@ export default function Training({ currentUser, group, onComplete }) {
         initial: 28 * 16,
         min: MIN,
         max: MAX,
+        onStart: (p) => logResize.onStart(p),
+        onEnd: (p) => logResize.onEnd(p),
     });
     const aiEnabled = !!uid && ai === true; // only for group 3 steps (except warmup per buildSteps)
 
@@ -134,7 +136,9 @@ export default function Training({ currentUser, group, onComplete }) {
         [currentUser, stepKey]
     );
 
-
+    const logResize = useMemo(
+        () => makeResizeLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiSidebar` }), [currentUser, stepKey]
+    );
 
 
 

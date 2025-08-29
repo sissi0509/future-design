@@ -71,7 +71,7 @@ export function makeOptionToggleStatement({ user, stageId, stepKey, choiceLabel,
     };
 }
 
-export function makeScrollStatement({ user, stageId, stepKey, y, dy = null }) {
+export function makeScrollStatement({ user, stageId, stepKey, r, dr = null }) {
     const objectId = `urn:future-design:ui:stage/${stageId}/step/${stepKey}/viewport`;
     return {
         actor: buildActor(user),
@@ -88,8 +88,8 @@ export function makeScrollStatement({ user, stageId, stepKey, y, dy = null }) {
         },
         result: {
             extensions: {
-                "https://futuredesign.app/xapi/ext/scrollY": y,
-                "https://futuredesign.app/xapi/ext/scrollDelta": dy,
+                "https://futuredesign.app/xapi/ext/scrollPosition": r,
+                "https://futuredesign.app/xapi/ext/scrollDelta": dr,
             },
         },
     };
@@ -129,7 +129,7 @@ export function makeScrollLogger({ user, stageId, stepKey, throttleMs = 200 }) {
             const y = target.scrollTop;
             const dy = y - lastY;
 
-            const stmt = makeScrollStatement({ user, stageId, stepKey, y, dy });
+            const stmt = makeScrollStatement({ user, stageId, stepKey, r: y, dr: dy });
             appendXapiToStage(user, stageId, stmt);
 
             lastTime = now;
@@ -252,5 +252,24 @@ export function makeSystemGeneratedLogger({ user, stageId, stepKey }) {
                 reason: `stageId=${stageId} stepKey=${stepKey} source=${source}`,
             });
         }
+    };
+}
+
+
+export function makeResizeLogger({ user, stageId, stepKey }) {
+    let startW = null;
+
+    return {
+        onStart: async ({ width }) => {
+            startW = width;
+            const stmt = makeScrollStatement({ user, stageId, stepKey, r: width, dr: 0 });
+            appendXapiToStage(user, stageId, stmt);
+        },
+        onEnd: async ({ width }) => {
+            const dx = startW == null ? 0 : width - startW;
+            const stmt = makeScrollStatement({ user, stageId, stepKey, r: width, dr: dx });
+            appendXapiToStage(user, stageId, stmt);
+            startW = null;
+        },
     };
 }

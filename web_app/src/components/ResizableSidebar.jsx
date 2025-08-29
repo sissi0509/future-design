@@ -18,10 +18,11 @@ export default function ResizableSidebar({
             }}
             aria-hidden={collapsed}
         >
-            {/* Invisible drag rail (no visuals) */}
+
             {!collapsed && (
                 <>
-                    <div
+                    {/* Invisible drag rail (no visuals) */}
+                    {/* <div
                         role="separator"
                         aria-orientation="vertical"
                         aria-label="Resize"
@@ -29,14 +30,31 @@ export default function ResizableSidebar({
                         onTouchStart={onResizeStart}
                         className="absolute left-0 top-0 h-full w-4 z-30 cursor-ew-resize select-none"
                         style={{ touchAction: "none", background: "transparent" }}
-                    />
+                    /> */}
 
                     {/* // very subtle 1px hairline hint on hover (keeps clicks for content) */}
-                    <div
+                    {/* <div
                         className="absolute left-0 top-0 h-full w-px bg-base-content/10
                        opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                         aria-hidden
-                    />
+                    /> */}
+
+                    <button
+                        type="button"
+                        aria-label="Resize sidebar"
+                        title="Drag to resize"
+                        onMouseDown={onResizeStart}
+                        onTouchStart={onResizeStart}
+                        className={[
+                            "absolute -left-2 top-1/2 z-40",
+                            " h-16 w-5 bg-base-100 shadow-sm",
+                            "flex items-center justify-center",
+                        ].join(" ")}
+                    >
+                        <span className="font-mono text-xs leading-none select-none pointer-events-none">
+                            {"< >"}
+                        </span>
+                    </button>
                 </>
             )}
 
@@ -63,6 +81,8 @@ export function useResizableWidth({
     initial = 28 * 16,
     min = 18 * 16,
     max = 64 * 16,
+    onStart,
+    onEnd,
 } = {}) {
     const [width, setWidth] = useState(initial);
 
@@ -73,16 +93,21 @@ export function useResizableWidth({
         e.preventDefault();
         const startX = getX(e);
         const startW = width;
+        let latest = startW;
+
+        onStart?.({ width: startW });
 
         const move = (ev) => {
             const dx = startX - getX(ev);
             let next = startW + dx;
             if (next < min) next = min;
             if (next > max) next = max;
+            latest = next;
             setWidth(next);
         };
 
         const end = () => {
+            onEnd?.({ width: latest });
             window.removeEventListener("mousemove", move);
             window.removeEventListener("mouseup", end);
             window.removeEventListener("touchmove", move);
