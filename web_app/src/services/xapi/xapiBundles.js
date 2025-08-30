@@ -83,7 +83,7 @@ export async function flushStageBundleToGlobalXapi({ user, stageId }) {
                 stageId,
                 seq,
                 createdAt: new Date().toISOString(),
-                statements, // full statements for Python analysis
+                statements,
             };
 
             await safeLogToFirebase({

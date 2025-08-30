@@ -72,32 +72,33 @@ export const sendAnswerStatement = async (user, stageId, answersObj) => {
     })
 };
 
-
 export function conversationTranscriptStatement(user, {
-    stageId,             // "training"
-    conversationId,      // "trainingAiConversation"
-    transcript,          // { activeId, messages:[{role,text}], branchesMeta: [...] }
+    stageId,        // e.g., "training"
+    conversationId, // e.g., "trainingAiConversation"
+    transcript,     // { activeId, branches: [...] } 
 }) {
     const objectId = `urn:future-design:conversation/${stageId}/${conversationId}`;
+
     return {
         actor: buildActor(user),
         timestamp: new Date().toISOString(),
-        verb: { id: "http://adlnet.gov/expapi/verbs/interacted", display: { "en-US": "interacted" } },
+        verb: {
+            id: "http://adlnet.gov/expapi/verbs/interacted",
+            display: { "en-US": "interacted" }
+        },
         object: {
             id: objectId,
             objectType: "Activity",
             definition: {
-                name: { "en-US": "Full AI conversation transcript" },
-                description: { "en-US": `Active branch transcript for ${conversationId}` },
+                name: { "en-US": "Full AI conversation transcript (all branches)" },
+                description: { "en-US": `Complete branched transcript for ${conversationId} in stage ${stageId}` },
                 type: "http://adlnet.gov/expapi/activities/media",
             },
         },
         result: {
             extensions: {
-                "https://futuredesign.app/xapi/ext/activeBranch": transcript.activeId,
-                "https://futuredesign.app/xapi/ext/messages": transcript.messages,        // ordered turns
-                "https://futuredesign.app/xapi/ext/branches": transcript.branchesMeta,    // optional meta
-                "https://futuredesign.app/xapi/ext/messageCount": transcript.messages.length,
+                "https://futuredesign.app/xapi/ext/activeBranchId": transcript.activeId ?? null,
+                "https://futuredesign.app/xapi/ext/branches": transcript.branches ?? [],
             },
         },
     };
@@ -106,16 +107,15 @@ export function conversationTranscriptStatement(user, {
 export async function sendConversationTranscript(user, {
     stageId,
     conversationId,
-    transcript,
+    transcript, // { activeId, branches:[{createdAt,parentId,forkedFromIndex,messages:[{role,text}]}] }
 }) {
-    const stmt = conversationTranscriptStatement(user, { stageId, conversationId, transcript });
+    const statement = conversationTranscriptStatement({ ...user }, { stageId, conversationId, transcript });
 
     const payload = {
-        type: "conversation transcript",
+        type: "conversation transcript (all branches)",
         stageId,
-        conversationId,
-        actor: stmt.actor,
-        statement: stmt,
+        actor: statement.actor,
+        statement: statement,
         createdAt: new Date().toISOString(),
     };
 

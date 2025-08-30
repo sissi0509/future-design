@@ -2,25 +2,20 @@ import { useRef, useState } from "react";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
 
-const OPEN_TEXT = "Hi! Ask me anything as you work."
+const OPEN_TEXT = "Hi! Ask me anything as you work.";
 
 export default function ChatBoxAI({
     title = "AI Coach",
-    registryKey = "trainingAiConversation",
-    currentUser,
+    storageKey,
     maxMessagesToSave = 200,
-    onKeyDown,
-    logClick,
-    logSystemGenerated,
-    onScroll
+    onKeyDown = () => { },
+    logClick = () => { },
+    logSystemGenerated = () => { },
+    onScroll = () => { },
 }) {
-    const storageKey = `chat-${registryKey}-${currentUser.uid}`;
     const textareaRef = useRef(null);
 
-    const [opener] = useState(() => ({
-        role: "ai",
-        text: OPEN_TEXT,
-    }));
+    const [opener] = useState(() => ({ role: "ai", text: OPEN_TEXT }));
 
     const {
         state: { branches, activeId, messages, input, isThinking, editingIndex, editDraft },
@@ -37,16 +32,12 @@ export default function ChatBoxAI({
     } = useChatStore({
         storageKey,
         opener,
-        registryKey,
         maxMessagesToSave,
-        logSystemGenerated
+        logSystemGenerated,
     });
 
     return (
-        <div
-            className="h-full flex flex-col border rounded-xl overflow-hidden"
-            onScroll={onScroll}
-        >
+        <div className="h-full flex flex-col border rounded-xl overflow-hidden" onScroll={onScroll}>
             <div className="px-4 py-3 font-semibold bg-base-200 flex items-center gap-2">
                 <span>{title}</span>
                 <div className="ml-auto" />
@@ -57,19 +48,24 @@ export default function ChatBoxAI({
                 {messages.map((m, i) => {
                     const isYou = m.role === "you";
                     const isEditing = editingIndex === i;
-
                     const { options, activeOptionIdx } = optionsForMessage(i, activeId);
 
                     return (
                         <div key={i} className={`flex ${isYou ? "justify-end" : "justify-start"}`}>
-                            <div className={isEditing ? "group relative block w-full" : "group relative inline-block max-w-[85%]"}>
+                            <div
+                                className={
+                                    isEditing ? "group relative block w-full" : "group relative inline-block max-w-[85%]"
+                                }
+                            >
                                 <div
-                                    className={`px-3 py-2 rounded-lg whitespace-pre-wrap break-words ${isEditing
-                                        ? "bg-base-100 text-base-content ring-2 ring-warning"
-                                        : isYou
-                                            ? "bg-primary text-white"
-                                            : "bg-base-300"
-                                        }`}
+                                    className={[
+                                        "px-3 py-2 rounded-lg whitespace-pre-wrap break-words",
+                                        isEditing
+                                            ? "bg-base-100 text-base-content ring-2 ring-warning"
+                                            : isYou
+                                                ? "bg-primary text-white"
+                                                : "bg-base-300",
+                                    ].join(" ")}
                                 >
                                     {!isEditing ? (
                                         m.text
@@ -151,8 +147,6 @@ export default function ChatBoxAI({
                                         )}
                                     </div>
                                 )}
-
-
                             </div>
                         </div>
                     );
@@ -188,6 +182,7 @@ export default function ChatBoxAI({
                                 send(e);
                             }
                         }}
+                        disabled={isThinking}
                     />
                     <div className="absolute right-2 bottom-2 flex gap-2">
                         <SpeechToTextButton

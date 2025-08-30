@@ -2,76 +2,52 @@ export function uidLike() {
     return Math.random().toString(36).slice(2, 10);
 }
 
-/** Our canonical message shape: { role: "you" | "ai", text: string } */
-export function isCanonMessage(m) {
-    return (
-        m &&
-        typeof m === "object" &&
-        (m.role === "you" || m.role === "ai") &&
-        typeof m.text === "string"
-    );
+export function fresh(opener) {
+    const b0 = {
+        id: uidLike(),
+        title: "Main",
+        createdAt: Date.now(),
+        messages: [opener],
+    };
+    return { branches: [b0], activeId: b0.id };
 }
 
-export function normalizeBranchesData(parsed, openerText) {
-    if (!parsed || !Array.isArray(parsed.branches)) return null;
-
-    const branches = parsed.branches.map((b) => {
-        const msgs = Array.isArray(b.messages) ? b.messages.filter(isCanonMessage) : [];
-        return {
-            id: b.id || uidLike(),
-            title: b.title || "Main",
-            createdAt: b.createdAt || Date.now(),
-            messages: msgs.length ? msgs : [{ role: "ai", text: openerText }],
-            parentId: b.parentId,
-            forkedFromIndex:
-                typeof b.forkedFromIndex === "number" ? b.forkedFromIndex : undefined,
-        };
-    });
-
-    if (!branches.length) return null;
-
-    const activeId =
-        (parsed.activeId && branches.find((b) => b.id === parsed.activeId)?.id) ||
-        branches[0].id;
-
-    return { branches, activeId };
-}
-
-// Build a single-branch transcript (active branch) from what you already store
-export function buildConversationTranscriptFromStored({
-    storageKey,            // e.g. `chat-trainingAiConversation-<uid>`
-    openerText = "Hi! Ask me anything as you work.",
-    maxMessages = 200,
-}) {
+export function loadConversation(storageKey, opener) {
     try {
         const raw = localStorage.getItem(storageKey);
-        if (!raw) return null;
-
+        if (!raw) return fresh(opener);
         const parsed = JSON.parse(raw);
-        const normalized = normalizeBranchesData(parsed, openerText);
-        if (!normalized) return null;
+        if (!parsed?.activeId || !Array.isArray(parsed?.branches)) return fresh(opener);
+        return parsed;
+    } catch {
+        return fresh(opener);
+    }
+}
 
-        const { branches, activeId } = normalized;
-        const active = branches.find(b => b.id === activeId) || branches[0];
-        const msgs = Array.isArray(active?.messages) ? active.messages : [];
+export function saveConversation(storageKey, convo) {
+    try { localStorage.setItem(storageKey, JSON.stringify(convo)); } catch { }
+}
 
-        // Keep the last N messages and ensure canonical shape
-        const messages = msgs
-            .slice(-maxMessages)
-            .filter(isCanonMessage)
-            .map(m => ({ role: m.role, text: String(m.text ?? "") }));
 
-        // lightweight branch metadata 
-        const branchesMeta = branches.map(b => ({
+export function buildFullTranscript(convo, maxPerBranch = 200) {
+    const { branches, activeId } = convo;
+    const getTime = (v) => typeof v === "number" ? v : (v ? Date.parse(v) : 0);
+
+
+    // oldest → newest
+    const ordered = [...branches].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+    return {
+        activeId,
+        branches: ordered.map(b => ({
             id: b.id,
             title: b.title ?? null,
-            createdAt: b.createdAt ?? null,
+            createdAt: b.createdAt ? new Date(getTime(b.createdAt)).toISOString() : null,
             parentId: b.parentId ?? null,
-            forkedFromIndex: typeof b.forkedFromIndex === "number" ? b.forkedFromIndex : null,
-        }));
-
-        return { activeId, messages, branchesMeta };
-    } catch {
-        return null;
-    }
+            forkedFromIndex: typeof b.forkedFromIndex === "number" ? b.forkedFromIndex : null, // The message index in parentId branch that was edited to create this fork
+            messages: (b.messages ?? [])
+                .slice(-maxPerBranch)
+                .map(m => ({ role: m.role, text: String(m.text ?? "") })),
+        })),
+    };
 }
