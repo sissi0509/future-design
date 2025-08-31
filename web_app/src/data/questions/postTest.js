@@ -30,7 +30,7 @@ const postTestQuestions = [
             'Then mark an X on the line where you will start acting on your plan.',
         ],
         minWords: 1,
-        maxWords: 40,
+        maxWords: 200,
     },
 
     // 3) Frequency per week
@@ -39,7 +39,7 @@ const postTestQuestions = [
         key: 'post3',
         label: '3) How many times a week do you expect to carry out your plan in the next two weeks?',
         minWords: 1,
-        maxWords: 10,
+        maxWords: 200,
     },
 
     // 4) Time per day
@@ -49,7 +49,7 @@ const postTestQuestions = [
         label:
             '4) On days that you carry out your plan, how much time per day do you expect to commit (not including activities you are already doing)?',
         minWords: 1,
-        maxWords: 15,
+        maxWords: 200,
     },
 
     // 5) Link to long-term vision
@@ -59,7 +59,7 @@ const postTestQuestions = [
         label:
             '5) What aspect of your long-term vision (e.g., 5 years from now) does your 2-week plan connect to?',
         minWords: 1,
-        maxWords: 120,
+        maxWords: 200,
     },
 
     // 6) Likert — confidence

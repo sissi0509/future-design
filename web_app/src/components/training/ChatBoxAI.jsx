@@ -1,8 +1,10 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
+// import StarterPanel from "./chatboxSetup/StarterPanel";
+import ChatBubbles from "./chatboxSetup/ChatBubbles";
+import { STARTER_BUBBLES, STARTER_INTRO, buildInstructionPrompt } from "../../data/questions/training/aiPrompts";
 
-const OPEN_TEXT = "Hi! Ask me anything as you work.";
 
 export default function ChatBoxAI({
     title = "AI Coach",
@@ -14,8 +16,6 @@ export default function ChatBoxAI({
     onScroll = () => { },
 }) {
     const textareaRef = useRef(null);
-
-    const [opener] = useState(() => ({ role: "ai", text: OPEN_TEXT }));
 
     const {
         state: { branches, activeId, messages, input, isThinking, editingIndex, editDraft },
@@ -31,10 +31,89 @@ export default function ChatBoxAI({
         },
     } = useChatStore({
         storageKey,
-        opener,
+        opener: { role: "ai", text: STARTER_INTRO },
+        systemPrompt: buildInstructionPrompt(),
         maxMessagesToSave,
         logSystemGenerated,
     });
+
+    // render a single message row (same UI you already have)
+    const renderMessage = (m, i) => {
+        const isYou = m.role === "you";
+        const isEditing = editingIndex === i;
+        const { options, activeOptionIdx } = optionsForMessage(i, activeId);
+
+        return (
+            <div key={i} className={`flex ${isYou ? "justify-end" : "justify-start"}`}>
+                <div className={isEditing ? "group relative block w-full" : "group relative inline-block max-w-[85%]"}>
+                    <div
+                        className={[
+                            "px-3 py-2 rounded-lg whitespace-pre-wrap break-words",
+                            isEditing
+                                ? "bg-base-100 text-base-content ring-2 ring-warning"
+                                : isYou
+                                    ? "bg-primary text-white"
+                                    : "bg-base-300",
+                        ].join(" ")}
+                    >
+                        {!isEditing ? (
+                            m.text
+                        ) : (
+                            <div>
+                                <textarea
+                                    className="textarea w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
+                                    value={editDraft}
+                                    onChange={(e) => setEditDraft(e.target.value)}
+                                    onKeyDown={onKeyDown}
+                                    autoFocus
+                                />
+                                <div className="mt-3 flex justify-end gap-2">
+                                    <button type="button" className="btn" onClick={cancelEdit}>Cancel</button>
+                                    <button type="button" className="btn btn-neutral" onClick={saveEditAndResend_NewBranch}>Send</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {!isEditing && (
+                        <div
+                            className={[
+                                "mt-1 flex items-center gap-2 text-xs text-base-content/60",
+                                isYou ? "justify-end pr-1" : "justify-start pl-1",
+                                "max-w-[85%] opacity-0 group-hover:opacity-100 transition-opacity",
+                            ].join(" ")}
+                        >
+                            {isYou && (
+                                <button
+                                    type="button"
+                                    title="Edit & re-ask (creates a new branch)"
+                                    onClick={() => startEdit(i)}
+                                    className="btn btn-ghost btn-xs"
+                                >
+                                    ✏️ Edit
+                                </button>
+                            )}
+                            {options.length > 1 && (
+                                <div className="flex items-center gap-1">
+                                    {options.map((id, idx) => (
+                                        <button
+                                            key={id}
+                                            type="button"
+                                            onClick={() => switchBranch(id)}
+                                            className={`btn btn-xs ${idx === activeOptionIdx ? "btn-primary" : "btn-outline"}`}
+                                        >
+                                            {idx + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
 
     return (
         <div className="h-full flex flex-col border rounded-xl overflow-hidden" onScroll={onScroll}>
@@ -45,112 +124,24 @@ export default function ChatBoxAI({
 
             {/* Messages */}
             <div className="flex-1 overflow-auto p-4 space-y-3">
-                {messages.map((m, i) => {
-                    const isYou = m.role === "you";
-                    const isEditing = editingIndex === i;
-                    const { options, activeOptionIdx } = optionsForMessage(i, activeId);
+                {messages[0] && renderMessage(messages[0], 0)}
 
-                    return (
-                        <div key={i} className={`flex ${isYou ? "justify-end" : "justify-start"}`}>
-                            <div
-                                className={
-                                    isEditing ? "group relative block w-full" : "group relative inline-block max-w-[85%]"
-                                }
-                            >
-                                <div
-                                    className={[
-                                        "px-3 py-2 rounded-lg whitespace-pre-wrap break-words",
-                                        isEditing
-                                            ? "bg-base-100 text-base-content ring-2 ring-warning"
-                                            : isYou
-                                                ? "bg-primary text-white"
-                                                : "bg-base-300",
-                                    ].join(" ")}
-                                >
-                                    {!isEditing ? (
-                                        m.text
-                                    ) : (
-                                        <div>
-                                            <textarea
-                                                className="textarea w-full md:w-[48rem] max-w-full min-h-[8rem] resize-y bg-base-100 text-base-content"
-                                                value={editDraft}
-                                                onChange={(e) => setEditDraft(e.target.value)}
-                                                onKeyDown={onKeyDown}
-                                                autoFocus
-                                            />
-                                            <div className="mt-3 flex justify-end gap-2">
-                                                <button
-                                                    type="button"
-                                                    className="btn"
-                                                    onClick={() => {
-                                                        logClick("btn-edit-cancel", "EditCancel");
-                                                        cancelEdit();
-                                                    }}
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-neutral"
-                                                    onClick={async () => {
-                                                        logClick("btn-edit-send", "EditSend");
-                                                        await saveEditAndResend_NewBranch();
-                                                    }}
-                                                >
-                                                    Send
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                {messages[0]?.role === "ai" && (
+                    <div className="mt-3 mb-1 flex justify-end">
 
-                                {!isEditing && (
-                                    <div
-                                        className={[
-                                            "mt-1 flex items-center gap-2 text-xs text-base-content/60",
-                                            isYou ? "justify-end pr-1" : "justify-start pl-1",
-                                            "max-w-[85%] opacity-0 group-hover:opacity-100 transition-opacity",
-                                        ].join(" ")}
-                                    >
-                                        {/* Edit (only for your messages) */}
-                                        {isYou && (
-                                            <button
-                                                type="button"
-                                                title="Edit & re-ask (creates a new branch)"
-                                                onClick={() => {
-                                                    logClick("btn-edit", "EditMessage");
-                                                    startEdit(i);
-                                                }}
-                                                className="btn btn-ghost btn-xs"
-                                            >
-                                                ✏️ Edit
-                                            </button>
-                                        )}
+                        <ChatBubbles
+                            starters={STARTER_BUBBLES}
+                            disabled={isThinking}
+                            onPick={(text) => {
+                                try { logClick("btn-bubble-pick", text); } catch { }
+                                send(text);
+                            }}
+                        />
 
-                                        {/* Numeric branch options: 1..N */}
-                                        {options.length > 1 && (
-                                            <div className="flex items-center gap-1">
-                                                {options.map((id, idx) => (
-                                                    <button
-                                                        key={id}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            logClick("btn-branch", `SwitchBranch:${idx + 1}`);
-                                                            switchBranch(id);
-                                                        }}
-                                                        className={`btn btn-xs ${idx === activeOptionIdx ? "btn-primary" : "btn-outline"}`}
-                                                    >
-                                                        {idx + 1}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
+                    </div>
+                )}
+
+                {messages.slice(1).map((m, j) => renderMessage(m, j + 1))}
 
                 {isThinking && (
                     <div className="text-left">

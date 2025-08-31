@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../components/User/AuthSetUp';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/Firebase';
@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Auth from '../components/User/Auth'
 import { sendAnswerStatement } from '../services/xapi/AnswersStatement';
 import { flushStageBundleToGlobalXapi } from '../services/xapi/xapiBundles'
+import { attachGlobalCopyPaste } from '../services/xapi/globalCopyPaste'
 
 import Welcome from './Welcome';
 import Consent from './Consent';
@@ -28,6 +29,7 @@ export default function Home() {
     const { currentUser } = useAuth();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const detachRef = useRef(null)
 
     useEffect(() => {
         const load = async () => {
@@ -50,6 +52,28 @@ export default function Home() {
         };
         load();
     }, [currentUser]);
+
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        if (detachRef.current) {
+            detachRef.current();
+            detachRef.current = null;
+        }
+
+        detachRef.current = attachGlobalCopyPaste({
+            user: currentUser,
+            defaultStageId: 'app',
+            defaultStepKey: 'global',
+        });
+
+        return () => {
+            if (detachRef.current) {
+                detachRef.current();
+                detachRef.current = null;
+            }
+        };
+    }, [currentUser?.uid]);
 
     const groupNumber = Number(data?.groupNumber ?? 3);
 

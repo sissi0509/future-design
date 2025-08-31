@@ -95,6 +95,7 @@ export function makeScrollStatement({ user, stageId, stepKey, r, dr = null }) {
     };
 }
 
+
 // ---------- Logger wrappers (append to bundle) ----------
 
 export function makeKeydownLogger({ user, stageId, stepKey }) {
@@ -270,6 +271,34 @@ export function makeResizeLogger({ user, stageId, stepKey }) {
             const stmt = makeScrollStatement({ user, stageId, stepKey, r: width, dr: dx });
             appendXapiToStage(user, stageId, stmt);
             startW = null;
+        },
+    };
+}
+
+export function makeCopyPasteStatement({ user, stageId, stepKey, action, text }) {
+    const verb = action === "copied"
+        ? { id: "https://futuredesign.app/xapi/verbs/copied", display: { "en-US": "copied" } }
+        : { id: "https://futuredesign.app/xapi/verbs/pasted", display: { "en-US": "pasted" } };
+
+    const objectId = `urn:future-design:ui:stage/${stageId}/step/${stepKey}/clipboard`;
+
+    return {
+        actor: buildActor(user),
+        timestamp: new Date().toISOString(),
+        verb,
+        object: {
+            id: objectId,
+            objectType: "Activity",
+            definition: {
+                name: { "en-US": "Clipboard interaction" },
+                description: { "en-US": `User ${action} text` },
+                type: "http://adlnet.gov/expapi/activities/media"
+            }
+        },
+        result: {
+            extensions: {
+                "https://futuredesign.app/xapi/ext/text": text || "",
+            }
         },
     };
 }

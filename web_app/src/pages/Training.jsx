@@ -75,10 +75,18 @@ export default function Training({ currentUser, group, onComplete }) {
     });
     const baseLogger = useMemo(() => buildLoggerBundle(currentUser, STAGE_ID, stepKey), [currentUser, stepKey]);
     const aiLogger = useMemo(() => buildLoggerBundle(currentUser, STAGE_ID, `${stepKey}-AiChatBox`), [currentUser, stepKey]);
-    const logScrollTraining = useMemo(() => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-TrainingSection`, throttleMs: 200 }), [currentUser, stepKey]);
-    const logScrollStepBody = useMemo(() => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-StepBody`, throttleMs: 200 }), [currentUser, stepKey]);
-    const logScrollAI = useMemo(() => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiChatBox`, throttleMs: 200 }), [currentUser, stepKey]);
-    const logResize = useMemo(() => makeResizeLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiSidebar` }), [currentUser, stepKey]);
+    const logScrollTraining = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-TrainingSection`, throttleMs: 200 }),
+        [currentUser, stepKey]);
+    const logScrollStepBody = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-StepBody`, throttleMs: 200 }),
+        [currentUser, stepKey]);
+    const logScrollAI = useMemo(
+        () => makeScrollLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiChatBox`, throttleMs: 200 }),
+        [currentUser, stepKey]);
+    const logResize = useMemo(
+        () => makeResizeLogger({ user: currentUser, stageId: STAGE_ID, stepKey: `${stepKey}-AiSidebar` }),
+        [currentUser, stepKey]);
 
     // AI sidebar (only group 3)
     const [collapsed, setCollapsed] = useState(false);
@@ -167,7 +175,12 @@ export default function Training({ currentUser, group, onComplete }) {
                             )}
                         </div>
 
-                        <div className="p-6 flex-1 overflow-auto" onScroll={logScrollStepBody}>
+                        <div
+                            className="p-6 flex-1 overflow-auto"
+                            onScroll={logScrollStepBody}
+                            data-stage={STAGE_ID}
+                            data-step={stepKey}
+                        >
                             <Comp
                                 onValidChange={handleCurrentValidChange}
                                 logClick={baseLogger.logClick}
@@ -198,14 +211,19 @@ export default function Training({ currentUser, group, onComplete }) {
                             max={MAX}
                             collapsed={collapsed}
                             onResizeStart={startResize}>
-                            <ChatBoxAI
-                                title="AI Coach"
-                                storageKey={CHAT_STORAGE_ID}
-                                logClick={aiLogger.logClick}
-                                logSystemGenerated={aiLogger.logSystemGenerated}
-                                onKeyDown={aiLogger.onKeyDown}
-                                onScroll={logScrollAI}
-                            />
+                            <div
+                                data-stage={STAGE_ID}
+                                data-step={`${stepKey}-AiChatBox`}
+                            >
+                                <ChatBoxAI
+                                    title="AI Coach"
+                                    storageKey={CHAT_STORAGE_ID}
+                                    logClick={aiLogger.logClick}
+                                    logSystemGenerated={aiLogger.logSystemGenerated}
+                                    onKeyDown={aiLogger.onKeyDown}
+                                    onScroll={logScrollAI}
+                                />
+                            </div>
                         </ResizableSidebar>
                     )}
                 </div>

@@ -8,10 +8,11 @@ const AI_SOURCE = "gemini-2.5-flash";
 export function useChatStore({
     storageKey,
     opener,
+    systemPrompt,
     maxMessagesToSave,
     logSystemGenerated,
 }) {
-    const initial = useMemo(() => loadConversation(storageKey, opener), []);
+    const initial = useMemo(() => loadConversation(storageKey, opener), [storageKey, opener]);
     const [branches, setBranches] = useState(initial.branches);
     const [activeId, setActiveId] = useState(initial.activeId);
 
@@ -44,8 +45,13 @@ export function useChatStore({
             return existing;
         }
         const branch = branches.find(b => b.id === branchId);
-        const history = Array.isArray(historyOverride) ? historyOverride : (branch?.messages || []);
-        const session = createChatSession(history);
+        let history = Array.isArray(historyOverride)
+            ? historyOverride
+            : (branch?.messages || []);
+        if ((!history || history.length === 0) && opener && opener.role && typeof opener.text !== "undefined") {
+            history = [opener];
+        }
+        const session = createChatSession(history, systemPrompt);
         sessionsRef.current.set(branchId, session);
         chatRef.current = session;
         return session;

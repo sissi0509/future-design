@@ -168,103 +168,109 @@ export default function Questionnaire({
     }
 
     return (
-        <form onSubmit={submit} className=" w-full max-w-3xl mx-auto p-6 space-y-6">
-            <div className="flex items-start justify-between">
-                <h1 className="text-2xl font-bold">
-                    {title}
-                </h1>
-                <span className="text-sm text-gray-500">
-                    Step {Math.min(step + 1, total)} / {total}
-                </span>
-            </div>
+        <div
+            data-stage={stageId}
+            data-step={current?.key || "questionnaire"}
+        >
+            <form onSubmit={submit} className=" w-full max-w-3xl mx-auto p-6 space-y-6">
+                <div className="flex items-start justify-between">
+                    <h1 className="text-2xl font-bold">
+                        {title}
+                    </h1>
+                    <span className="text-sm text-gray-500">
+                        Step {Math.min(step + 1, total)} / {total}
+                    </span>
+                </div>
 
-            {/* Render current question */}
-            {current?.type === "text" && (
-                <TextQuestion
-                    label={current.label}
-                    value={answers[current.key] ?? ""}
-                    onChange={(val) => setValue(current.key, val)}
-                    minWords={current.minWords}
-                    maxWords={current.maxWords}
-                    onKeyDown={onKeyDown}
-                    onClick={logClick}
-                    logSystemGenerated={logSystemGenerated}
-                />
-            )}
+                {/* Render current question */}
+                {current?.type === "text" && (
 
-            {current?.type === "multiple" && (
-                current.kind === 'likert-matrix' ? (
-                    <LikertMatrix
-                        baseKey={current.key}               // "s2"
+                    <TextQuestion
                         label={current.label}
-                        rows={current.rows}                 // emotions
-                        columns={current.columns}           // frequencies
-                        answers={answers}
-                        onChangeRow={(rowKey, colVal) => setValue(`${current.key}-${rowKey}`, colVal)}
-                        onSelect={onSelect}
-                        onClick={logClick}
-                    />
-                ) : (
-                    <MultipleChoice
-                        label={current.label}
-                        options={current.options}
-                        value={
-                            current.kind === 'multi'
-                                ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
-                                : (answers[current.key] ?? '')
-                        }
+                        value={answers[current.key] ?? ""}
                         onChange={(val) => setValue(current.key, val)}
-                        kind={current.kind || 'single'}
-                        qkey={current.key}
-                        onSelect={onSelect}
-                        onToggle={onToggle}
+                        minWords={current.minWords}
+                        maxWords={current.maxWords}
+                        onKeyDown={onKeyDown}
+                        onClick={logClick}
+                        logSystemGenerated={logSystemGenerated}
                     />
+                )}
+
+                {current?.type === "multiple" && (
+                    current.kind === 'likert-matrix' ? (
+                        <LikertMatrix
+                            baseKey={current.key}               // "s2"
+                            label={current.label}
+                            rows={current.rows}                 // emotions
+                            columns={current.columns}           // frequencies
+                            answers={answers}
+                            onChangeRow={(rowKey, colVal) => setValue(`${current.key}-${rowKey}`, colVal)}
+                            onSelect={onSelect}
+                            onClick={logClick}
+                        />
+                    ) : (
+                        <MultipleChoice
+                            label={current.label}
+                            options={current.options}
+                            value={
+                                current.kind === 'multi'
+                                    ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
+                                    : (answers[current.key] ?? '')
+                            }
+                            onChange={(val) => setValue(current.key, val)}
+                            kind={current.kind || 'single'}
+                            qkey={current.key}
+                            onSelect={onSelect}
+                            onToggle={onToggle}
+                        />
+                    )
                 )
-            )
-            }
+                }
 
-            {/* Nav */}
-            <div className="flex justify-between gap-4">
-                <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                        logClick("btn-next", "Next");
-                        back();
-                    }}
-                    disabled={step === 0}
-
-                >
-                    Back
-                </button>
-
-                {!isLast ? (
+                {/* Nav */}
+                <div className="flex justify-between gap-4">
                     <button
                         type="button"
-                        className="btn btn-primary"
-                        onClick={(e) => {
-                            logClick("btn-next", "Next");
-                            next(e);
-                        }}
-                        disabled={!currentValid}
-                    >
-                        Next
-                    </button>
-                ) : (
-                    <button
-                        type="submit"
-                        className="btn btn-success"
+                        className="btn btn-secondary"
                         onClick={() => {
-                            logClick("btn-submit", "Submit");
-
+                            logClick("btn-next", "Next");
+                            back();
                         }}
-                        // don’t allow submit until last question is valid *and* the delay has passed
-                        disabled={!currentValid || submitting || !submitVisible}
+                        disabled={step === 0}
+
                     >
-                        {submitting ? "Submitting…" : "Submit"}
+                        Back
                     </button>
-                )}
-            </div>
-        </form>
+
+                    {!isLast ? (
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={(e) => {
+                                logClick("btn-next", "Next");
+                                next(e);
+                            }}
+                            disabled={!currentValid}
+                        >
+                            Next
+                        </button>
+                    ) : (
+                        <button
+                            type="submit"
+                            className="btn btn-success"
+                            onClick={() => {
+                                logClick("btn-submit", "Submit");
+
+                            }}
+                            // don’t allow submit until last question is valid *and* the delay has passed
+                            disabled={!currentValid || submitting || !submitVisible}
+                        >
+                            {submitting ? "Submitting…" : "Submit"}
+                        </button>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 }

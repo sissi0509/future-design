@@ -7,7 +7,7 @@ export function fresh(opener) {
         id: uidLike(),
         title: "Main",
         createdAt: Date.now(),
-        messages: [opener],
+        messages: opener && opener.role && typeof opener.text !== "undefined" ? [opener] : [],
     };
     return { branches: [b0], activeId: b0.id };
 }
