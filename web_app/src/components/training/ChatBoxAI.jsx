@@ -116,14 +116,14 @@ export default function ChatBoxAI({
 
 
     return (
-        <div className="h-full flex flex-col border rounded-xl overflow-hidden" onScroll={onScroll}>
+        <div className="h-full flex flex-col border rounded-xl overflow-hidden" >
             <div className="px-4 py-3 font-semibold bg-base-200 flex items-center gap-2">
                 <span>{title}</span>
                 <div className="ml-auto" />
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-auto p-4 space-y-3">
+            <div className="flex-1 overflow-auto p-4 space-y-3" onScroll={onScroll}>
                 {messages[0] && renderMessage(messages[0], 0)}
 
                 {messages[0]?.role === "ai" && (

@@ -212,6 +212,7 @@ export default function Training({ currentUser, group, onComplete }) {
                             collapsed={collapsed}
                             onResizeStart={startResize}>
                             <div
+                                className="h-full min-h-0"
                                 data-stage={STAGE_ID}
                                 data-step={`${stepKey}-AiChatBox`}
                             >
