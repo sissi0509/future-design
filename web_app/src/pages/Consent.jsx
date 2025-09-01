@@ -11,24 +11,18 @@ import {
     flushStageBundleToGlobalXapi,
 } from "../services/xapi/xapiBundles";
 
+import { questions, mainContent } from '../data/consent'
+
 export default function Consent({ currentUser, onComplete }) {
-    const [hasAgreed, setHasAgreed] = useState(false);
-    const [typedId, setTypedId] = useState("");
+    const [idx, setIdx] = useState(0);                // which question is showing
+    const [answers, setAnswers] = useState([]);
     const [error, setError] = useState("");
 
-    const inputRef = useRef(null);
+
     const scrollRef = useRef(null);
 
     const stageId = "consent";
-    const stepKeyInput = "prolificId";
     const stepKeyScroll = "formScroll";
-
-    // log keystrokes
-    const onKeyDown = makeKeydownLogger({
-        user: currentUser,
-        stageId,
-        stepKey: stepKeyInput,
-    });
 
     // log scrolls
     const onScroll = makeScrollLogger({
@@ -44,42 +38,53 @@ export default function Consent({ currentUser, onComplete }) {
         return () => el?.removeEventListener("scroll", onScroll);
     }, [onScroll]);
 
-    // handle checkbox click (option toggle)
-    const handleCheckboxChange = (e) => {
-        const checked = e.target.checked;
-        setHasAgreed(checked);
+    const allYes = answers.length === questions.length && answers.every(Boolean);
+    const ADVANCE_DELAY_MS = 400; // 300–500ms feels good
+
+    const handleToggle = async (choice) => {
+        const q = questions[idx];
 
         try {
             const stmt = makeOptionToggleStatement({
                 user: currentUser,
                 stageId,
-                stepKey: "agreeCheckbox",
-                choiceLabel: "I Agree",
-                selected: checked,
+                stepKey: `q${idx + 1}`,        // e.g., q1, q2, ...
+                choiceLabel: q,
+                selected: choice,              // true for Yes
             });
             appendXapiToStage(currentUser, stageId, stmt);
         } catch (err) {
-            logClientError({
+            await logClientError({
                 error: err,
-                source: "Consent.handleCheckboxChange",
-                reason: "Failed to append checkbox toggle",
+                source: "Consent handleToggle",
+                reason: "Failed to append toggle",
             });
+        }
+
+        setAnswers((prev) => {
+            const next = [...prev];
+            next[idx] = !!choice;
+            return next;
+        });
+
+        if (choice === true) {
+            setError("");
+            // small pause so the ✓ is visible, then advance
+            setTimeout(() => {
+                setIdx((i) => Math.min(i + 1, questions.length - 1)); // NOT length-1
+            }, ADVANCE_DELAY_MS);
+        } else {
+            setError("You must select “Yes” to proceed.");
         }
     };
 
-    const isFormValid = hasAgreed && typedId.trim().length > 0;
 
     // handle submit button click (functional click + flush)
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!isFormValid) {
-            setError("Please agree and sign with correct ID.");
-            return;
-        }
+        if (!allYes) return;
 
         try {
-            // log functional click
             const stmt = makeFunctionalClickStatement({
                 user: currentUser,
                 stageId,
@@ -88,11 +93,7 @@ export default function Consent({ currentUser, onComplete }) {
                 label: "Submit and Continue",
             });
             appendXapiToStage(currentUser, stageId, stmt);
-
-            // flush all consent-stage statements (keys, scrolls, checkbox, submit)
             await flushStageBundleToGlobalXapi({ user: currentUser, stageId });
-
-            // advance flow
             onComplete?.();
         } catch (err) {
             setError("Something went wrong. Please try again.");
@@ -104,48 +105,91 @@ export default function Consent({ currentUser, onComplete }) {
         }
     };
 
-    const consentText = ",Consent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team atConsent Form\n\nBy participating in this study, you agree to the following terms:\n\n1. Your participation is voluntary, and you may withdraw at any time without penalty.\n2. Your responses will be kept confidential and used solely for research purposes.\n3. You will not receive any direct benefits from participating in this study.\n4. If you have any questions or concerns, please contact the research team at";
 
     return (
         <div className="max-w-3xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">Consent Form</h1>
+            <img
+                src="/Carnegie-Mellon-University-Logo-500x281.png"
+                className="w-80"
+            />
+            <h1 className="text-2xl font-bold mb-4">On-line Consent Form for session 2</h1>
+
 
             <div
                 ref={scrollRef}
                 className="mb-6 border rounded p-4 bg-gray-50 max-h-[500px] overflow-y-auto"
             >
-                <p className="text-sm whitespace-pre-wrap">{consentText}</p>
+                <p className="text-sm whitespace-pre-wrap">{mainContent}</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <label className="inline-flex items-center">
-                    <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={hasAgreed}
-                        onChange={handleCheckboxChange}
-                    />
-                    Agree
-                </label>
+            {idx < questions.length && (
+                <div className="mb-4">
 
-                <div>
-                    <label className="block text-sm font-medium mb-1">
-                        Type ID to sign:
-                    </label>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        className="input input-bordered w-full"
-                        value={typedId}
-                        onChange={(e) => setTypedId(e.target.value)}
-                        placeholder="Type your Prolific ID"
-                        onKeyDown={onKeyDown}   // logs keystrokes
-                    />
+                    <p className="mb-4">{questions[idx]}</p>
+
+
+                    <div className="flex items-center gap-3">
+                        {/* NO label (clickable) */}
+                        <button
+                            type="button"
+                            className={`text-sm ${(answers[idx] ?? false) ? "text-base-content/50" : "font-semibold"
+                                }`}
+                            onClick={() => handleToggle(false)}
+                            aria-pressed={!(answers[idx] ?? false)}
+                        >
+                            No
+                        </button>
+
+                        {/* Toggle */}
+                        <label className="toggle text-base-content">
+                            <input
+                                type="checkbox"
+                                checked={answers[idx] ?? false}
+                                onChange={(e) => handleToggle(e.target.checked)}
+                                aria-label={`Answer ${answers[idx] ? "Yes" : "No"}`}
+                            />
+                            <svg
+                                aria-label="disabled"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                            <svg aria-label="enabled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="4" fill="none" stroke="currentColor">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                </g>
+                            </svg>
+
+                        </label>
+
+                        {/* YES label (clickable) */}
+                        <button
+                            type="button"
+                            className={`text-sm ${(answers[idx] ?? false) ? "font-semibold" : "text-base-content/50"
+                                }`}
+                            onClick={() => handleToggle(true)}
+                            aria-pressed={!!(answers[idx] ?? false)}
+                        >
+                            Yes
+                        </button>
+                    </div>
+
+                    {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
                 </div>
+            )}
 
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-
-                <button type="submit" className="btn btn-neutral-content">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <button
+                    type="submit"
+                    className="btn btn-neutral-content"
+                    disabled={!allYes}>
                     Submit and Continue
                 </button>
             </form>
