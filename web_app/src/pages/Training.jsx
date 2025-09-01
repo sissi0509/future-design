@@ -159,9 +159,9 @@ export default function Training({ currentUser, group, onComplete }) {
     return (
         <div className="mx-auto w-full max-w-screen-2xl px-6 pt-6 pb-28" onScroll={logScrollTraining}>
             <div className="border rounded-xl overflow-hidden h-[85vh]">
-                <div className="relative flex h-full">
+                <div className="relative flex h-full min-h-0">
                     {/* LEFT */}
-                    <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="flex-1 min-w-0 flex flex-col min-h-0">
                         <div className="px-4 py-3 border-b bg-base-100 flex items-center justify-between">
                             <div className="text-sm opacity-70">Step {currentIdx + 1} / {steps.length}</div>
                             {aiEnabled && (
