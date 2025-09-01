@@ -130,7 +130,7 @@ Open the printed URL (e.g. `http://localhost:5173`) and log in with a seeded use
 
 ## 🔑 Editing Prompts & Questions  
 
-All AI prompts, starter bubbles, and training questions, pre-test, post-test, and survey items are stored as **data modules** (not hardcoded in components).  
+All AI prompts, starter bubbles, and training questions, post-test, and survey items are stored as **data modules** (not hardcoded in components).  
 
 - Location:  
   ```
@@ -139,7 +139,6 @@ All AI prompts, starter bubbles, and training questions, pre-test, post-test, an
 - Examples:  
 - `training/aiPrompts.js` → AI system prompts and starter bubbles.  
 - `training/goal.js`, `plan.js`, `strategy.js`, `warmup.js`, `instruction.js` → Training stage questions and instructions.  
-- `preTest.js` → Pre-test question set.  
 - `postTest.js` → Post-test question set.  
 - `survey.js` → Survey items.  
 
