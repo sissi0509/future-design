@@ -14,8 +14,9 @@ export default function TextQuestion({
     logSystemGenerated
 }) {
     const textareaRef = useRef(null);
-    const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
-    const valid = wordCount >= minWords && wordCount <= maxWords;
+    // check word count and show the word count at button if needed.
+    // const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
+    // const valid = wordCount >= minWords && wordCount <= maxWords;
 
 
     const labelParts = Array.isArray(label) ? label : [label];

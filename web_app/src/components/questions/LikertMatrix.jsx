@@ -10,15 +10,21 @@ export default function LikertMatrix({
     onSelect,
     onClick,
 }) {
+    const labelParts = Array.isArray(label) ? label : [label];
+
     const optionsListText = columns.map(c => c.label).join(", ");
     const speechText =
-        `${label}. ` +
+        `${labelParts}. ` +
         rows.map((r, i) => `${i + 1}: ${r.label}. Options: ${optionsListText}`).join(" ");
 
     return (
-        <div className="space-y-3">
-            <div className="block font-medium">
-                {label}
+        <div>
+            <div className="space-y-3">
+                {labelParts.map((part, i) => (
+                    <p key={i} className="whitespace-pre-line leading-relaxed text-justify">
+                        {part}
+                    </p>
+                ))}
                 <ReadAloudButton onClick={onClick} text={speechText} />
             </div>
 
@@ -28,7 +34,7 @@ export default function LikertMatrix({
                         <tr>
                             <th></th>
                             {columns.map(col => (
-                                <th key={col.key} className="text-center" scope="col">
+                                <th key={col.key} className="text-center font-medium !text-base-content " scope="col">
                                     {col.label}
                                 </th>
                             ))}
@@ -68,6 +74,6 @@ export default function LikertMatrix({
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 }

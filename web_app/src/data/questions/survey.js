@@ -26,7 +26,8 @@ const surveyQuestions = [
         type: "multiple",
         kind: "likert-matrix",
         key: "s2",
-        label: "While developing your 2-week plan, did you feel:",
+        label: ["While developing your 2-week plan, did you feel:",
+            "Please choose one option per row:"],
         rows: [
             { key: "bored", label: "Bored" },
             { key: "curious", label: "Curious" },
@@ -90,7 +91,6 @@ const surveyQuestions = [
         options: LIKERT,
     },
 
-    // 7) Email copy
     {
         type: 'multiple',
         kind: 'single',

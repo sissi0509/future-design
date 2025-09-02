@@ -9,7 +9,6 @@ export const LIKERT = [
 ];
 
 const postTestQuestions = [
-    // 1) Summarize plan
     {
         type: 'text',
         key: 'post1',
@@ -21,19 +20,21 @@ const postTestQuestions = [
         maxWords: 200,
     },
 
-    // 2) Draw timeline with hyphens and X
     {
-        type: 'text',
+        type: 'range',
         key: 'post2',
         label: [
-            '2) In the space below, draw a horizontal line using hyphens (-) starting with today and ending with 2 weeks from now.',
-            'Then mark an X on the line where you will start acting on your plan.',
+            '2) At which day will you start to act on your plan?',
         ],
+        rangeMin: 1,
+        rangeMax: 14,
+        startLabel: "At the first day",
+        endLabel: "Two weeks from today",
+        rangeStep: 1,
         minWords: 1,
         maxWords: 200,
     },
 
-    // 3) Frequency per week
     {
         type: 'text',
         key: 'post3',
@@ -42,7 +43,6 @@ const postTestQuestions = [
         maxWords: 200,
     },
 
-    // 4) Time per day
     {
         type: 'text',
         key: 'post4',
@@ -52,7 +52,6 @@ const postTestQuestions = [
         maxWords: 200,
     },
 
-    // 5) Link to long-term vision
     {
         type: 'text',
         key: 'post5',
@@ -62,7 +61,6 @@ const postTestQuestions = [
         maxWords: 200,
     },
 
-    // 6) Likert — confidence
     {
         type: 'multiple',
         kind: 'likert',
@@ -72,7 +70,6 @@ const postTestQuestions = [
         options: LIKERT,
     },
 
-    // 7) Likert — acknowledging uncertainty
     {
         type: 'multiple',
         kind: 'likert',

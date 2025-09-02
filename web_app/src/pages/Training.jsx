@@ -109,6 +109,7 @@ export default function Training({ currentUser, group, onComplete }) {
             let answerObj = {};
             for (const s of steps) {
                 const draft = readDraft(uid, s.key) || {};
+                answerObj[s.key] = draft.text
                 await setDoc(
                     doc(db, "sessionInfo", uid, "responses", s.key),
                     { type: s.key, ...draft, submitted: true, draft: false, status: "final-submit", updatedAt: serverTimestamp() },

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import TextQuestion from "./TextQuestion";
 import MultipleChoice from "./MultipleChoice";
 import LikertMatrix from "./LikertMatrix";
+import RangeQuestion from './RangeQuestion'
 import { makeKeydownLogger, makeSelectLogger, makeToggleLogger, makeClickLogger, makeSystemGeneratedLogger } from '../../services/xapi/eventStatements'
 
 export default function Questionnaire({
@@ -81,6 +82,11 @@ export default function Questionnaire({
                 max = q.maxWords ?? Infinity;
             const c = wordCount(v);
             return c >= min && c <= max;
+        }
+        if (q.type === "range") {
+            if (v == null || !Number.isFinite(Number(v))) return false;
+            const num = Number(v);
+            return num >= q.rangeMin && num <= q.rangeMax;
         }
         if (q.type === "multiple") {
             const kind = q.kind || "single";
@@ -181,52 +187,72 @@ export default function Questionnaire({
                         Step {Math.min(step + 1, total)} / {total}
                     </span>
                 </div>
+                <div class="mb-10">
+                    {/* Render current question */}
+                    {current?.type === "text" && (
 
-                {/* Render current question */}
-                {current?.type === "text" && (
-
-                    <TextQuestion
-                        label={current.label}
-                        value={answers[current.key] ?? ""}
-                        onChange={(val) => setValue(current.key, val)}
-                        minWords={current.minWords}
-                        maxWords={current.maxWords}
-                        onKeyDown={onKeyDown}
-                        onClick={logClick}
-                        logSystemGenerated={logSystemGenerated}
-                    />
-                )}
-
-                {current?.type === "multiple" && (
-                    current.kind === 'likert-matrix' ? (
-                        <LikertMatrix
-                            baseKey={current.key}               // "s2"
+                        <TextQuestion
                             label={current.label}
-                            rows={current.rows}                 // emotions
-                            columns={current.columns}           // frequencies
-                            answers={answers}
-                            onChangeRow={(rowKey, colVal) => setValue(`${current.key}-${rowKey}`, colVal)}
-                            onSelect={onSelect}
-                            onClick={logClick}
-                        />
-                    ) : (
-                        <MultipleChoice
-                            label={current.label}
-                            options={current.options}
-                            value={
-                                current.kind === 'multi'
-                                    ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
-                                    : (answers[current.key] ?? '')
-                            }
+                            value={answers[current.key] ?? ""}
                             onChange={(val) => setValue(current.key, val)}
-                            kind={current.kind || 'single'}
-                            qkey={current.key}
-                            onSelect={onSelect}
-                            onToggle={onToggle}
+                            minWords={current.minWords}
+                            maxWords={current.maxWords}
+                            onKeyDown={onKeyDown}
+                            onClick={logClick}
+                            logSystemGenerated={logSystemGenerated}
+                        />
+                    )}
+
+                    {current?.type === "range" && (
+                        <RangeQuestion
+                            label={current.label}
+                            rangeMin={current.rangeMin}
+                            rangeMax={current.rangeMax}
+                            rangeStep={current.rangeStep}
+                            startLabel={current.startLabel}
+                            endLabel={current.endLabel}
+                            value={Number.isFinite(answers[current.key]) ? answers[current.key] : current.rangeMin}
+                            onClick={logClick}
+                            onChange={(val) => {
+                                setValue(current.key, val);
+                                onSelect?.(`range:${current.key}`, String(val));
+                            }}
                         />
                     )
-                )
-                }
+
+                    }
+
+                    {current?.type === "multiple" && (
+                        current.kind === 'likert-matrix' ? (
+                            <LikertMatrix
+                                baseKey={current.key}               // "s2"
+                                label={current.label}
+                                rows={current.rows}                 // emotions
+                                columns={current.columns}           // frequencies
+                                answers={answers}
+                                onChangeRow={(rowKey, colVal) => setValue(`${current.key}-${rowKey}`, colVal)}
+                                onSelect={onSelect}
+                                onClick={logClick}
+                            />
+                        ) : (
+                            <MultipleChoice
+                                label={current.label}
+                                options={current.options}
+                                value={
+                                    current.kind === 'multi'
+                                        ? (Array.isArray(answers[current.key]) ? answers[current.key] : [])
+                                        : (answers[current.key] ?? '')
+                                }
+                                onChange={(val) => setValue(current.key, val)}
+                                kind={current.kind || 'single'}
+                                qkey={current.key}
+                                onSelect={onSelect}
+                                onToggle={onToggle}
+                            />
+                        )
+                    )
+                    }
+                </div>
 
                 {/* Nav */}
                 <div className="flex justify-between gap-4">
