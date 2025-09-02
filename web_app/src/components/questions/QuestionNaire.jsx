@@ -187,7 +187,7 @@ export default function Questionnaire({
                         Step {Math.min(step + 1, total)} / {total}
                     </span>
                 </div>
-                <div class="mb-10">
+                <div className="mb-10">
                     {/* Render current question */}
                     {current?.type === "text" && (
 
