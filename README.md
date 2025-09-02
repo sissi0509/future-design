@@ -1,66 +1,52 @@
 # Fullstack Web App with GenAI Chatbot for Future Thinking Research
+<img width="1633" height="964" alt="Screenshot 2025-09-02 at 2 06 10 PM" src="https://github.com/user-attachments/assets/d2fa1a93-bf7e-4f1f-a887-49532a85e4c8" />
 
-This project was created by **Xi Zhao** (M.S. student, Northeastern University) for **Gati Aher** (Ph.D. student, Carnegie Mellon University), as part of research advised by:  
-- Professor **Nikolas Martelaro** (Augmented Design Capability Studio, HCI Institute @ CMU)  
-- Professor **Scupelli** (Learning Environments Lab, Design School @ CMU)  
+This web application (React + Firebase) supports online user studies on how GenAI helps college students plan for their future. It includes a branching conversational GenAI chatbot (Gemini 2.5-flash), xAPI logs of student behavior, and multiple pages of survey questions.
+
+This project was created by **Xi Zhao** (M.S. student, Northeastern University) for **[Gati Aher](https://gatiaher.github.io/)** (Ph.D. student, Carnegie Mellon University), as part of research advised by:  
+- Professor **[Nikolas Martelaro](https://nikmartelaro.com/)** (Augmented Design Capability Studio, HCI Institute @ CMU)  
+- Professor **[Peter Scupelli](https://learningenvironmentslab.org/peter-scupelli/)** (Learning Environments Lab, Design School @ CMU)  
+
 ---
-## 🖼️ Screenshots
-### Login Page
-
-<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 37 45 PM" src="https://github.com/user-attachments/assets/d1a1e2c1-4cd9-4161-b2bd-3dcd27b14adc" />
-After login, the user’s email appears at the top-right corner of every subsequent page.
-
-### Welcome Page
-
-<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 38 12 PM" src="https://github.com/user-attachments/assets/3b8aa404-b04c-41de-a40b-64af4d62dc26" />
-
-### Cosent Form Page
-
-<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 38 20 PM" src="https://github.com/user-attachments/assets/34072357-1b5b-4df0-ad00-361fd4d566b3" />
-
-### Training page 1 - warmup page
-Most question pages include two accessibility features:
-- Read Aloud button (reads the text aloud to users)
-- Speak button (converts speech into text input)
-  
-These buttons are available in the Training, Post-Test, and Survey sections.
-
-<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 38 28 PM" src="https://github.com/user-attachments/assets/ee9577fb-abfd-45e4-a1a8-a8ca115fc106" />
-
-### Training pages (2- 5) with AI-chatbox inside
-The training sequence (pages 2–5) may or may not include AI support, depending on the user’s group assignment.
-- **AI Group Experience**
-   - Users in the AI group see an AI Coach sidebar, which can be toggled on or off.
-   - The chatbox is resizable for flexible use.
-   - The AI Coach is pre-prompted with instructions, and users can start a conversation with six predefined starter bubbles.
-   - Users can edit messages and create new conversation branches, supporting exploration of multiple ideas.
-- **Accessibility Features**
-  - All training and test questions include a Read Aloud button, enabling screen-reader style playback.
-
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 04 03 PM" src="https://github.com/user-attachments/assets/565b1869-6efd-48c1-ac6a-7871bc6b4c8f" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 04 24 PM" src="https://github.com/user-attachments/assets/47fb919b-5e18-4bd6-909e-22efc1d14f30" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 05 55 PM" src="https://github.com/user-attachments/assets/d6694a5a-668f-4f8d-97e4-a2bde588fe5c" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 06 17 PM" src="https://github.com/user-attachments/assets/d23e15fd-357c-4e9b-a770-01b7b86842bc" />
-
-### Post-Test & Survey
-These sections contain different question types:
--Open-ended text
--Single choice
--Multiple choice
--Likert scale
--Likert matirx
-The **Next** button is enabled only after the current question is completed (choice selected or text word count validated).
-
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 06 45 PM" src="https://github.com/user-attachments/assets/82e4a657-cd3e-48db-9faf-de08b15e8e7f" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 04 PM" src="https://github.com/user-attachments/assets/144cf43b-213b-4947-a680-bf06201bd536" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 15 PM" src="https://github.com/user-attachments/assets/9812bfd9-3206-408c-a72e-7be115dbe8e9" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 19 PM" src="https://github.com/user-attachments/assets/ea50a715-b667-4dce-b7c4-128befafa15a" />
-<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 36 PM" src="https://github.com/user-attachments/assets/9dafab99-870a-4f0e-b83b-c87e97122ea6" />
+## Table of Contents
+- [Technical Highlights](#-technical-highlights)
+- [Quick Start](#-quick-start)
 
 
-## QR-Code page
+---
+## 🧩 Technical Highlights
 
-<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 41 20 PM" src="https://github.com/user-attachments/assets/653141b7-af56-44cf-bc73-ac291530b670" />
+During development, I solved several technical challenges to make the platform research-ready.  
+
+### 🎨 Front-End 
+- **Rich AI Chatbox**
+   - **Resizable, toggleable sidebar** for flexible layouts.
+   - Pre-prompted AI Coach with **starter bubbles** to guide users.
+   ![ezgif-4f3efdb1ad001b](https://github.com/user-attachments/assets/70970a29-b960-4262-a07d-3fdae10ce303)
+  - **Branching edits** let users fork conversations and explore multiple futures.
+  - ![branch](https://github.com/user-attachments/assets/8c8e6a08-2d3a-4cc9-8fd9-2b2d3b4f90ed)
+
+ 
+- **Accessibility**
+  - Integrated **Read Aloud (text → speech)** and **Speak (speech → text input)** across training, post-test, and survey.
+  - Supports users who prefer listening, rely on voice input, or need alternative ways to interact with text.
+- **Data-Driven Content Architecture**
+  - All questions, AI prompts, and starter bubbles stored in separate **data modules** (not hardcoded in components).
+  - Makes it easy to update or swap study content without redeploying the app.
+
+### ⚙️ Back-End & Infrastructure 
+- **High-Volume Logging & Analytics**
+  - **Bundled fine-grained logs** capture keystrokes, clicks, **copy-paste actions**, resizes, and scrolls, then aggregate before writing to Firebase to prevent quota issues.
+  - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage.
+- **Reliability & Error Handling**
+  - All logs go through `safeLogToFirebase`, with retries and batching to prevent data loss.
+  - Client errors are captured with `logClientError()` instead of `console.log`, giving researchers/admins visibility into client-side issues.
+- **Reliable Data Storage**
+  - **LocalStorage drafts** prevent data loss on refresh or navigation.
+  - **App-wide registry flush** ensures all responses are uploaded to Firebase on logout for permanent storage.
+
+✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.
+
 
 ---
 
@@ -199,38 +185,65 @@ node exportFirestore.js
 
 
 
+
 ---
-## 🧩 Problem + Solution  
+## 🖼️ Screenshots
+### Login Page
 
-During development, I addressed several technical challenges:
+<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 37 45 PM" src="https://github.com/user-attachments/assets/d1a1e2c1-4cd9-4161-b2bd-3dcd27b14adc" />
+After login, the user’s email appears at the top-right corner of every subsequent page.
 
-- **Rich AI Chatbox**
-  - Designed an AI Coach (pre-prompted with guardrails) that supports starter bubbles, branching edits, and a resizable, toggleable sidebar.
-  - Enables users to explore multiple futures by revising conversations, rather than being locked into linear chat.
+### Welcome Page
+<img width="1212" height="420" alt="Screenshot 2025-09-02 at 6 26 59 PM" src="https://github.com/user-attachments/assets/7b265e6c-f969-4c52-b1d6-be5a37a24fdb" />
 
-- **High-Volume Logging & Analytics**
-  - **Bundled fine-grained logs** capture keystrokes, clicks, **copy-paste actions**, resizes, and scrolls, then aggregate before writing to Firebase to prevent quota issues.
-  - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated log per stage, so researchers can review full results without piecing together micro-logs.
 
-- **Reliability & Error Handling**  
-  - **Safe delivery:** All logs go through `safeLogToFirebase`, with retries and batching to prevent data loss.  
-  - **Error tracking:** Instead of `console.log` or `console.error`, client errors are captured with `logClientError()` and stored in Firebase, giving researchers/admins visibility into client-side issues.  
+### Cosent Form Page
+<img width="1105" height="639" alt="Screenshot 2025-09-02 at 6 27 26 PM" src="https://github.com/user-attachments/assets/90a343db-3c38-48af-8fc8-f92f62a433f1" />
 
-- **Reliable Data Storage**  
-  - **LocalStorage drafts** prevent data loss on refresh or navigation.  
-  - **App-wide registry flush** ensures all responses are uploaded to Firebase on logout for permanent storage.  
 
-- **Accessibility**  
-  - Integrated **Read Aloud (text → speech)** and **Speak (speech → text input)** across training, post-test, and survey.  
-  - Supports users who prefer listening, rely on voice input, or need alternative ways to interact with text.  
+### Training page 1 - warmup page
+Most question pages include two accessibility features:
+- Read Aloud button (reads the text aloud to users)
+- Speak button (converts speech into text input)
+  
+These buttons are available in the Training, Post-Test, and Survey sections.
 
-- **Data-Driven Content Architecture**  
-  - All questions, AI prompts, and starter bubbles are stored in separate **data modules** (not hardcoded in components).  
-  - Makes it easy to update or swap study content without redeploying the app.  
-  - Ensures a clean separation between **logic** (React + Firebase) and **content** (JSON/JS data).  
+<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 38 28 PM" src="https://github.com/user-attachments/assets/ee9577fb-abfd-45e4-a1a8-a8ca115fc106" />
 
-✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.  
+### Training pages (2- 5) with AI-chatbox inside
+The training sequence (pages 2–5) may or may not include AI support, depending on the user’s group assignment.
+- **AI Group Experience**
+   - Users in the AI group see an AI Coach sidebar, which can be toggled on or off.
+   - The chatbox is resizable for flexible use.
+   - The AI Coach is pre-prompted with instructions, and users can start a conversation with six predefined starter bubbles.
+   - Users can edit messages and create new conversation branches, supporting exploration of multiple ideas.
+- **Accessibility Features**
+  - All training and test questions include a Read Aloud button, enabling screen-reader style playback.
 
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 04 03 PM" src="https://github.com/user-attachments/assets/565b1869-6efd-48c1-ac6a-7871bc6b4c8f" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 04 24 PM" src="https://github.com/user-attachments/assets/47fb919b-5e18-4bd6-909e-22efc1d14f30" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 05 55 PM" src="https://github.com/user-attachments/assets/d6694a5a-668f-4f8d-97e4-a2bde588fe5c" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 06 17 PM" src="https://github.com/user-attachments/assets/d23e15fd-357c-4e9b-a770-01b7b86842bc" />
+
+### Post-Test & Survey
+These sections contain different question types:
+-Open-ended text
+-Single choice
+-Multiple choice
+-Likert scale
+-Likert matirx
+The **Next** button is enabled only after the current question is completed (choice selected or text word count validated).
+
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 06 45 PM" src="https://github.com/user-attachments/assets/82e4a657-cd3e-48db-9faf-de08b15e8e7f" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 04 PM" src="https://github.com/user-attachments/assets/144cf43b-213b-4947-a680-bf06201bd536" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 15 PM" src="https://github.com/user-attachments/assets/9812bfd9-3206-408c-a72e-7be115dbe8e9" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 19 PM" src="https://github.com/user-attachments/assets/ea50a715-b667-4dce-b7c4-128befafa15a" />
+<img width="1920" height="1080" alt="Screenshot 2025-09-01 at 12 07 36 PM" src="https://github.com/user-attachments/assets/9dafab99-870a-4f0e-b83b-c87e97122ea6" />
+
+
+## QR-Code page
+
+<img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 41 20 PM" src="https://github.com/user-attachments/assets/653141b7-af56-44cf-bc73-ac291530b670" />
 
 ---
 
