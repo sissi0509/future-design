@@ -85,5 +85,63 @@
                 "answer": "“Pick problems, not tools. Communicate early, and write things down.”"
             }
         }
+    },
+    {
+        "email": "user4@example.com",
+        "password": "usedfortesting123",
+        "groupNumber": 3,
+        "previousResponses": {
+            "expect": {
+                "prompt": "What you expect you'll be like and doing in 5 years.",
+                "answers": [
+                    "Software engineer leading a small feature team on a consumer app.",
+                    "Comfortable designing APIs and reviewing pull requests with empathy.",
+                    "Contributing to an open-source library a few times per year.",
+                    "Financially stable, mentoring interns, and running 5Ks regularly."
+                ]
+            },
+            "avoid": {
+                "prompt": "What you do NOT want to be like or be doing in 5 years.",
+                "answers": [
+                    "Job-hopping without purpose or growth.",
+                    "Working in a culture of micromanagement with unclear priorities.",
+                    "Letting skills stagnate and avoiding code reviews.",
+                    "Constantly on-call without boundaries."
+                ]
+            },
+            "advice": {
+                "prompt": "Most influential advice about the job you want.",
+                "answer": "“Pick problems, not tools. Communicate early, and write things down.”"
+            }
+        }
+    },
+    {
+        "email": "user5@example.com",
+        "password": "usedfortesting123",
+        "groupNumber": 3,
+        "previousResponses": {
+            "expect": {
+                "prompt": "What you expect you'll be like and doing in 5 years.",
+                "answers": [
+                    "Software engineer leading a small feature team on a consumer app.",
+                    "Comfortable designing APIs and reviewing pull requests with empathy.",
+                    "Contributing to an open-source library a few times per year.",
+                    "Financially stable, mentoring interns, and running 5Ks regularly."
+                ]
+            },
+            "avoid": {
+                "prompt": "What you do NOT want to be like or be doing in 5 years.",
+                "answers": [
+                    "Job-hopping without purpose or growth.",
+                    "Working in a culture of micromanagement with unclear priorities.",
+                    "Letting skills stagnate and avoiding code reviews.",
+                    "Constantly on-call without boundaries."
+                ]
+            },
+            "advice": {
+                "prompt": "Most influential advice about the job you want.",
+                "answer": "“Pick problems, not tools. Communicate early, and write things down.”"
+            }
+        }
     }
 ]

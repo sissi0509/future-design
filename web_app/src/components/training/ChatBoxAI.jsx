@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { insertTextAt, SpeechToTextButton } from "../SpeechToText";
 import { useChatStore } from "./chatboxSetup/useChatStore";
-// import StarterPanel from "./chatboxSetup/StarterPanel";
 import ChatBubbles from "./chatboxSetup/ChatBubbles";
 import { STARTER_BUBBLES, STARTER_INTRO, buildInstructionPrompt } from "../../data/questions/training/aiPrompts";
+import Markdown from 'react-markdown'
 
 
 export default function ChatBoxAI({
@@ -28,6 +28,7 @@ export default function ChatBoxAI({
             saveEditAndResend_NewBranch,
             switchBranch,
             optionsForMessage,
+            startNew
         },
     } = useChatStore({
         storageKey,
@@ -37,7 +38,7 @@ export default function ChatBoxAI({
         logSystemGenerated,
     });
 
-    // render a single message row (same UI you already have)
+    // render a single message row 
     const renderMessage = (m, i) => {
         const isYou = m.role === "you";
         const isEditing = editingIndex === i;
@@ -57,7 +58,7 @@ export default function ChatBoxAI({
                         ].join(" ")}
                     >
                         {!isEditing ? (
-                            m.text
+                            <Markdown>{m.text}</Markdown>
                         ) : (
                             <div>
                                 <textarea
@@ -114,12 +115,25 @@ export default function ChatBoxAI({
         );
     };
 
+    const onStartNew = () => {
+        const confirmStartNew = window.confirm(
+            "You are going to start a new conversation, and can not get access to your previous conversations. Do you still want to start a new one?"
+        );
+        try { logClick("btn-startNew", "start new conversation"); } catch { }
+        startNew()
+
+    }
+
 
     return (
         <div className="h-full flex flex-col border rounded-xl overflow-hidden" >
             <div className="px-4 py-3 font-semibold bg-base-200 flex items-center gap-2">
                 <span>{title}</span>
-                <div className="ml-auto" />
+
+                <button
+                    className="btn btn-sm btn-soft btn-primary ml-auto"
+                    onClick={onStartNew}
+                >Start New</button>
             </div>
 
             {/* Messages */}

@@ -27,7 +27,19 @@ export default function ChatBoxAI({ title = "AI Coach" }) {
 
     return (
         <div className="h-full flex flex-col border rounded-xl overflow-hidden">
-            <div className="px-4 py-3 font-semibold bg-base-200">{title}</div>
+            <div className="px-4 py-3 bg-base-200 flex items-center gap-2">
+
+                <h2 className="font-semibold flex-1 min-w-0 truncate">{title}</h2>
+
+                <button
+                    type="button"
+                    className="btn btn-sm btn-primary ml-auto"
+                    onClick={onStartNew} // pass this prop in
+                >
+                    Start New
+                </button>
+            </div>
+
 
             {/* Chat messages */}
             <div className="flex-1 overflow-auto p-4 space-y-3">

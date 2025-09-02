@@ -3,6 +3,8 @@ import { createChatSession } from "../../../services/aiApi/chat";
 import { loadConversation, saveConversation, uidLike } from "./chatUtils";
 import { logClientError } from "../../../services/errorHandle/logClientError";
 
+
+
 const AI_SOURCE = "gemini-2.5-flash";
 
 export function useChatStore({
@@ -181,11 +183,31 @@ export function useChatStore({
         return { options, activeOptionIdx };
     };
 
+    const startNew = () => {
+        const b = {
+            id: uidLike(),
+            title: "Main",
+            messages: opener && opener.text != null ? [opener] : [],
+            createdAt: Date.now(),
+        };
+
+        // wipe edit/input state
+        setInput("");
+        setIsThinking(false);
+        setEditingIndex(null);
+        setEditDraft("");
+
+        const next = [...branches, b];
+        persist(next, b.id);
+
+        initSessionForBranch(b.id, b.messages);
+    };
+
     return {
         state: { branches, activeId, messages, input, isThinking, editingIndex, editDraft },
         actions: {
             setInput, send, startEdit, cancelEdit, setEditDraft,
-            saveEditAndResend_NewBranch, switchBranch, optionsForMessage,
+            saveEditAndResend_NewBranch, switchBranch, optionsForMessage, startNew
         },
     };
 }

@@ -7,7 +7,7 @@ import goalQuestions from "./goal";
 
 export const STARTER_INTRO = [
     "Hi there! 👋 I'm here to help you think through your goal.",
-    "These six strategies can give you new insights and help you plan more clearly.",
+    "These ***six strategies*** can give you new insights and help you plan more clearly.",
     "Click each bubble to explore:",
 ].join("\n\n");
 
