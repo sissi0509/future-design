@@ -274,7 +274,8 @@ The **Next** button is enabled only after the current question is completed (cho
 
 <img width="1057" height="336" alt="Screenshot 2025-09-02 at 8 28 22 PM" src="https://github.com/user-attachments/assets/711ab97c-84d8-4853-8b63-58dd3ea44af5" />
 
-<img width="1077" height="761" alt="Screenshot 2025-09-02 at 8 28 59 PM" src="https://github.com/user-attachments/assets/0a42bdbb-06dd-4829-8f62-aae395d9ccc9" />
+<img width="1130" height="783" alt="Screenshot 2025-09-02 at 9 11 28 PM" src="https://github.com/user-attachments/assets/7c205cff-7444-4beb-aa8a-4e0aeae36eef" />
+
 
 <img width="1074" height="358" alt="Screenshot 2025-09-02 at 8 29 32 PM" src="https://github.com/user-attachments/assets/114b5e28-12f4-45ec-abc9-bdcf16381c38" />
 
