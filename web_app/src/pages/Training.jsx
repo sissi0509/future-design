@@ -116,9 +116,16 @@ export default function Training({ currentUser, group, onComplete }) {
                     { merge: true }
                 );
             }
+
             try {
                 await sendAnswerStatement(currentUser, 'training', answerObj);
-            } catch { }
+            } catch (err) {
+                await logClientError({
+                    error: err,
+                    source: "Training.sendAnswerStatement",
+                    reason: "Failed to send training answer statement",
+                });
+            }
 
             try {
                 const raw = localStorage.getItem(CHAT_STORAGE_ID);
@@ -142,9 +149,7 @@ export default function Training({ currentUser, group, onComplete }) {
 
             try { for (const s of steps) localStorage.removeItem(storageKey(uid, s.key)); } catch { }
             try { localStorage.removeItem(CHAT_STORAGE_ID); } catch { }
-            try {
-                for (const s of steps) regRemove(s.key);
-            } catch { }
+            try { for (const s of steps) regRemove(s.key); } catch { }
 
             await flushStageBundleToGlobalXapi({ user: currentUser, stageId: 'training' });
             onComplete?.();
