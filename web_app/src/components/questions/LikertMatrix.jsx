@@ -19,7 +19,7 @@ export default function LikertMatrix({
 
     return (
         <div>
-            <div className="space-y-3">
+            <div className="space-y-3 block font-medium mb-2">
                 {labelParts.map((part, i) => (
                     <p key={i} className="whitespace-pre-line leading-relaxed text-justify">
                         {part}
