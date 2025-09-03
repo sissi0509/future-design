@@ -1,9 +1,16 @@
 # Fullstack Web App with GenAI Chatbot for Future Thinking Research
 <img width="1633" height="964" alt="Screenshot 2025-09-02 at 2 06 10 PM" src="https://github.com/user-attachments/assets/d2fa1a93-bf7e-4f1f-a887-49532a85e4c8" />
 
-This web application (React + Firebase) supports online user studies on how GenAI helps college students plan for their future. It includes a branching conversational GenAI chatbot (Gemini 2.5-flash), xAPI logs of student behavior, and multiple pages of survey questions.
+This project is a **research platform** built to support online user studies on how GenAI helps college students plan for their future.
 
-This project was created by **Xi Zhao** (M.S. student, Northeastern University) for **[Gati Aher](https://gatiaher.github.io/)** (Ph.D. student, Carnegie Mellon University), as part of research advised by:  
+The application integrates:
+- **AI-powered conversational coach** (Gemini 2.5-flash) with branching edits  
+- **xAPI-based logging system** for fine-grained interaction analysis  
+- **Training module** with step-by-step reflection prompts, plus **post-test and survey modules** for collecting feedback and other research data
+
+Built with **React · Firebase (Auth + Firestore) · Node.js · xAPI · DaisyUI**, the platform is research-ready, reliable, and accessible.  
+
+Created by **Xi Zhao** (M.S. student, Northeastern University) for **[Gati Aher](https://gatiaher.github.io/)** (Ph.D. student, Carnegie Mellon University), as part of research advised by:  
 - Professor **[Nikolas Martelaro](https://nikmartelaro.com/)** (Augmented Design Capability Studio, HCI Institute @ CMU)  
 - Professor **[Peter Scupelli](https://learningenvironmentslab.org/peter-scupelli/)** (Learning Environments Lab, Design School @ CMU)  
 
@@ -21,7 +28,7 @@ This project was created by **Xi Zhao** (M.S. student, Northeastern University) 
 - [Screenshots](#%EF%B8%8F-screenshots)
   - [Login Page](#login-page)
   - [Welcome Page](#welcome-page)
-  - [Consent Form Page](#cosent-form-page)
+  - [Consent Form Page](#consent-form-page)
   - [Training Page 1 - Warmup](#training-page-1---warmup-page)
   - [Training Pages (2–5)](#training-pages-2--5-with-ai-chatbox-inside)
   - [Post-Test & Survey](#post-test--survey)
@@ -233,7 +240,7 @@ After login, the user’s email appears at the top-right corner of every subsequ
 <img width="1212" height="420" alt="Screenshot 2025-09-02 at 6 26 59 PM" src="https://github.com/user-attachments/assets/7b265e6c-f969-4c52-b1d6-be5a37a24fdb" />
 
 
-### Cosent Form Page
+### Consent Form Page
 <img width="1105" height="639" alt="Screenshot 2025-09-02 at 6 27 26 PM" src="https://github.com/user-attachments/assets/90a343db-3c38-48af-8fc8-f92f62a433f1" />
 
 
@@ -267,7 +274,7 @@ These sections contain different question types:
 -Open-ended text
 -Multiple choice
 -Likert scale
--Likert matirx
+-Likert matrix
 The **Next** button is enabled only after the current question is completed (choice selected or text word count validated).
 
 <img width="1073" height="541" alt="Screenshot 2025-09-02 at 8 26 56 PM" src="https://github.com/user-attachments/assets/d3e81996-6516-43ad-837b-d6f27586c325" />
