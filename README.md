@@ -142,7 +142,7 @@ These are not committed to GitHub, so you need to create your own `.env.local` f
 
 ### 3. Register Users  
 
-The **admin scripts** let you register users in Firebase with a pre-assigned `groupNumber` and optional `trainingSeed` data.  
+The **admin scripts** let you register users in Firebase with a pre-assigned `groupNumber` and optional `previousResponses` data.  
 
 - `groupNumber` → assigns which experimental condition a user belongs to.  
 - `previousResponses` 
@@ -171,7 +171,21 @@ node registerUser.js
 cd web_app
 npm run dev
 ```
-Open the printed URL (e.g. `http://localhost:5173`) and log in with a seeded user.
+Open the printed URL (e.g. `http://localhost:5173`) and log in with a pre-registered user.
+
+
+### 5. Deploy Online
+```bash
+cd web_app
+firebase init hosting
+# Select: use existing project -> your-project-name
+# Public directory: dist
+# Configure as a single-page app (rewrite all urls to /index.html)? Yes
+
+npm run build
+firebase deploy
+```
+log in with a pre-registered user.
 
 ---
 
