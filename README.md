@@ -183,7 +183,7 @@ firebase init hosting
 # Configure as a single-page app (rewrite all urls to /index.html)? Yes
 
 npm run build
-firebase deploy
+firebase deploy --only hosting
 ```
 log in with a pre-registered user.
 
