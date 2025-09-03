@@ -12,12 +12,12 @@ This project was created by **Xi Zhao** (M.S. student, Northeastern University) 
 - [Technical Highlights](#-technical-highlights)
   - [Front-End](#-front-end)
   - [Back-End & Infrastructure](#️-back-end--infrastructure)
-  - [Reliability & Error Handling](#-reliability-error-handling)
+  - [Reliability & Error Handling](#️-reliability--error-handling)
 - [Project Structure](#-project-structure)
 - [Quick Start](#-quick-start)
 - [Editing Prompts & Questions](#-editing-prompts--questions)
 - [Export Firestore Data to JSON](#-export-firestore-data-to-json)
-- [Screenshots](#-screenshots)
+- [Screenshots](#%EF%B8%8F-screenshots)
   - [Login Page](#login-page)
   - [Welcome Page](#welcome-page)
   - [Consent Form Page](#cosent-form-page)
@@ -58,7 +58,7 @@ During development, I solved several technical challenges to make the platform r
   - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated xAPI statement per stage, making it easy to review full sessions.
 
     
-### ⚙️ Reliability & Error Handling  
+### ⚙️ Reliability & Error Handling
 
 - **LocalStorage Drafts**  
   - Automatically save user input (answers, reflections, chat text) into `localStorage`.  
