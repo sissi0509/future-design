@@ -166,7 +166,7 @@ node registerUser.js
   - For reference, see admin/serviceAccountKey.example.json to understand the expected format
 
 
-### 4. Run the Web App
+### 4. Run the Web App locally
 ```bash
 cd web_app
 npm run dev
