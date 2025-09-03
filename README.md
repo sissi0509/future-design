@@ -57,13 +57,29 @@ During development, I solved several technical challenges to make the platform r
   - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated xAPI statement per stage, making it easy to review full sessions.
 
     
-- **Reliability & Error Handling**
-  - All logs go through `safeLogToFirebase`, with retries and batching to prevent data loss.
-  - Client errors are captured with `logClientError()` instead of `console.log`, giving researchers/admins visibility into client-side issues.
-- **Reliable Data Storage**
-  - **LocalStorage drafts** prevent data loss on refresh or navigation.
-  - **App-wide registry flush** ensures all responses are uploaded to Firebase on logout for permanent storage.
+### ⚙️ Reliability & Error Handling  
 
+- **LocalStorage Drafts**  
+  - Automatically save user input (answers, reflections, chat text) into `localStorage`.  
+  - Restores progress instantly after a refresh, tab close, or temporary network loss.  
+  - Prevents users from losing work mid-session, ensuring smoother study participation. 
+
+- **App-Wide Registry Flush**  
+  - Global “answers registry” keeps track of all responses during a session.  
+  - On **logout**, the registry uploads all past responses in bulk to Firebase.  
+  - Guarantees that answers remain safely stored even if the user logs out before finishing the study.  
+
+
+- **Safe Logging with Retries (`safeLogToFirebase`)**  
+  - Logs (xAPI statements, client errors) are written to Firestore through a wrapper.  
+  - If a write fails, the event is added to a **localStorage queue**.  
+  - A background task (`logAutoFlush`) retries every 15s and on reconnect, ensuring no logs are lost.  
+
+- **Structured Error Tracking (`logClientError()`)**    
+  - Captures error with message, stack, user info, and timestamp, then saves them in Firebase.  
+  - Provides researchers/admins **visibility into client-side issues**, making real-world debugging possible.  
+
+ 
 ✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.
 
 ---
