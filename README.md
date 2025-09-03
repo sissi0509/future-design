@@ -8,12 +8,13 @@ This project was created by **Xi Zhao** (M.S. student, Northeastern University) 
 - Professor **[Peter Scupelli](https://learningenvironmentslab.org/peter-scupelli/)** (Learning Environments Lab, Design School @ CMU)  
 
 ---
+
 ## Table of Contents
 - [Technical Highlights](#-technical-highlights)
   - [Front-End](#-front-end)
   - [Back-End & Infrastructure](#️-back-end--infrastructure)
   - [Reliability & Error Handling](#️-reliability--error-handling)
-- [Project Structure](#-project-structure)
+- [Project Architecture Overview](#-project-architecture-overview)
 - [Quick Start](#-quick-start)
 - [Editing Prompts & Questions](#-editing-prompts--questions)
 - [Export Firestore Data to JSON](#-export-firestore-data-to-json)
@@ -27,9 +28,8 @@ This project was created by **Xi Zhao** (M.S. student, Northeastern University) 
   - [QR-Code Page](#qr-code-page)
 - [Acknowledgements](#-acknowledgements)
 
-
-
 ---
+
 ## 🧩 Technical Highlights
 
 During development, I solved several technical challenges to make the platform research-ready.  
@@ -51,56 +51,59 @@ During development, I solved several technical challenges to make the platform r
   - All questions, AI prompts, and starter bubbles stored in separate **data modules** (not hardcoded in components).
   - Makes it easy to update or swap study content without redeploying the app.
 
+
 ### ⚙️ Back-End & Infrastructure 
 - **High-Volume Logging & Analytics (xAPI-based)**
-  - Implemented logging with the **[xAPI (Experience API)](https://xapi.com/)** standard for more structured tracking of learning interactions.  
-  - **Bundled fine-grained logs** capture keystrokes, clicks, copy-paste actions, resizes, and scrolls, then aggregate before writing to Firebase to prevent quota issues.  
-  - **Stage-level summaries** capture each long conversation or set of answers as a single consolidated xAPI statement per stage, making it easy to review full sessions.
+  Implemented logging with the **[xAPI (Experience API)](https://xapi.com/)** standard for more structured tracking of learning interactions.  
+  <img width="1080" height="527" alt="Screenshot 2025-09-03 at 10 23 34 AM" src="https://github.com/user-attachments/assets/e8a59915-b9c0-45c2-8202-a95e327ed833" />
+- **Bundled fine-grained logs** capture keystrokes, clicks, copy-paste actions, resizes, and scrolls, then aggregate before writing to Firebase to prevent quota issues.  
+  <img width="1086" height="528" alt="Screenshot 2025-09-03 at 10 21 25 AM" src="https://github.com/user-attachments/assets/4fd03368-3644-4166-99da-e773c65dc4e4" />
+- **Stage-level summaries** capture each long conversation or set of answers as a single consolidated xAPI statement per stage, making it easy to review full sessions.
+  <img width="1084" height="531" alt="Screenshot 2025-09-03 at 10 24 27 AM" src="https://github.com/user-attachments/assets/24cd007e-221f-4c3e-b5ec-6b95380c810d" />
+
 
     
 ### ⚙️ Reliability & Error Handling
-
 - **LocalStorage Drafts**  
-  - Automatically save user input (answers, reflections, chat text) into `localStorage`.  
-  - Restores progress instantly after a refresh, tab close, or temporary network loss.  
-  - Prevents users from losing work mid-session, ensuring smoother study participation. 
+  - Automatically save user input (answers, reflections, chat text) into `localStorage`.
+  - Restores progress instantly after a refresh, preventing mid-session data loss and  ensuring smoother study participation. 
 
 - **App-Wide Registry Flush**  
   - Global “answers registry” keeps track of all responses during a session.  
-  - On **logout**, the registry uploads all past responses in bulk to Firebase.  
-  - Guarantees that answers remain safely stored even if the user logs out before finishing the study.  
-
+  - On **logout**, all responses are bulk-synced to Firebase, so data remains safe even if the study isn’t finished.  
+  <img width="1089" height="587" alt="Screenshot 2025-09-03 at 10 37 30 AM" src="https://github.com/user-attachments/assets/ea1d1738-8530-4ad6-9303-9abcfb13d50a" />
 
 - **Safe Logging with Retries (`safeLogToFirebase`)**  
-  - Logs (xAPI statements, client errors) are written to Firestore through a wrapper.  
-  - If a write fails, the event is added to a **localStorage queue**.  
-  - A background task (`logAutoFlush`) retries every 15s and on reconnect, ensuring no logs are lost.  
+  - Logs (xAPI statements, client errors) are written to Firestore through a wrapper. If a write fails, the event is added to a **localStorage queue**.  
+  - A background task (`logAutoFlush`) retries every 15s and on reconnect, extending Firebase’s built-in offline handling with stronger guarantees that no interaction data is lost.  
 
 - **Structured Error Tracking (`logClientError()`)**    
-  - Captures error with message, stack, user info, and timestamp, then saves them in Firebase.  
-  - Provides researchers/admins **visibility into client-side issues**, making real-world debugging possible.  
+  - Records errors with message, stack, user info, and timestamp.  
+  - Logged to Firebase (or queued if offline), giving admins visibility into client-side issues.  
+  <img width="1088" height="531" alt="Screenshot 2025-09-03 at 11 02 27 AM" src="https://github.com/user-attachments/assets/7c85e9e9-79f3-4add-bbe2-f89d2858414b" />
 
  
 ✅ Together, these solutions created a stable, research-ready platform for running controlled AI vs non-AI studies.
 
 ---
-## 📂 Project Structure
+
+## 📂 Project Architecture Overview
 
 ```
 repo/
-├─ admin/
-│  ├─ registerUser.js
-│  ├─ serviceAccountKey.json   
-│  └─ users.json               
+├─ admin/            # Scripts for Firebase user management & data export
 └─ web_app/
    ├─ src/
-   │  ├─ components/
-   │  ├─ pages/
-   │  └─ config/Firebase.js    # firebase config 
-   ├─ package.json
-   └─ ...
+   │  ├─ components/ # React UI components
+   │  ├─ pages/      # Page-level views
+   │  ├─ data/       # Study content (prompts, questions, bubbles)
+   │  ├─ services/   # AI API, xAPI logs, error handling
+   │  └─ config/     # Firebase setup
+   └─ package.json
 ```
+
 ---
+
 ## 🚀 Quick Start
 
 ### 0. Prerequisites
@@ -182,6 +185,7 @@ All AI prompts, starter bubbles, and training questions, post-test, and survey i
 This separation makes it easy for collaborators to **update study content** without touching React components.  
 
 ---
+
 ## 📤 Export Firestore Data to JSON  
 
 You can export Firestore collections into local `.json` files for analysis or backup.  
@@ -217,10 +221,8 @@ node exportFirestore.js
 
 ✅ This will generate a file named `<collection>.json` in the same folder.  
 
-
-
-
 ---
+
 ## 🖼️ Screenshots
 ### Login Page
 <img width="1562" height="1010" alt="Screenshot 2025-08-27 at 1 37 45 PM" src="https://github.com/user-attachments/assets/d1a1e2c1-4cd9-4161-b2bd-3dcd27b14adc" />
@@ -282,8 +284,6 @@ The **Next** button is enabled only after the current question is completed (cho
 
 ### QR-Code page
 <img width="1062" height="453" alt="Screenshot 2025-09-02 at 8 31 51 PM" src="https://github.com/user-attachments/assets/eb6ed053-e1b1-4ead-88a4-6b99c3560995" />
-
-
 
 ---
 
