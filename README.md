@@ -8,7 +8,7 @@ The application integrates:
 - **xAPI-based logging system** for fine-grained interaction analysis  
 - **Training module** with step-by-step reflection prompts, plus **post-test and survey modules** for collecting feedback and other research data
 
-Built with **React · Firebase (Auth + Firestore) · Node.js · xAPI · DaisyUI**, the platform is research-ready, reliable, and accessible.  
+**Tech stack:** React · Firebase (Auth + Firestore) · Node.js · xAPI · DaisyUI  
 
 Created by **Xi Zhao** (M.S. student, Northeastern University) for **[Gati Aher](https://gatiaher.github.io/)** (Ph.D. student, Carnegie Mellon University), as part of research advised by:  
 - Professor **[Nikolas Martelaro](https://nikmartelaro.com/)** (Augmented Design Capability Studio, HCI Institute @ CMU)  
