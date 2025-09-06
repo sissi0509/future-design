@@ -10,7 +10,8 @@ export default function RangeQuesion({
     onChange,
     onClick,
     startLabel,
-    endLabel
+    endLabel,
+    tooltip
 }) {
 
 
@@ -41,7 +42,7 @@ export default function RangeQuesion({
                     style={{ left: `calc(${percent}% )`, transform: "translateX(-50%)" }}
                     aria-live="polite"
                 >
-                    <div className="tooltip tooltip-open tooltip-info" data-tip={value}>
+                    <div className="tooltip tooltip-open tooltip-info" data-tip={`${tooltip} ${value}`}>
                     </div>
                 </div>
                 <input

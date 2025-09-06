@@ -212,6 +212,7 @@ export default function Questionnaire({
                             startLabel={current.startLabel}
                             endLabel={current.endLabel}
                             value={Number.isFinite(answers[current.key]) ? answers[current.key] : current.rangeMin}
+                            tooltip={current.tooltip}
                             onClick={logClick}
                             onChange={(val) => {
                                 setValue(current.key, val);
