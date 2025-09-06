@@ -94,6 +94,8 @@ During development, I solved several technical challenges to make the platform r
 
 ---
 
+
+
 ## 📂 Project Architecture Overview
 
 ```
@@ -115,7 +117,7 @@ repo/
 
 ### 0. Prerequisites
 - **Node.js 20+** and **npm**
-- Access to our shared **Firebase** project (Firestore + Authentication enabled)
+- A personal **Firebase project** (create your own — see below step2)
 
 ### 1. Install dependencies
 ```bash
@@ -124,23 +126,70 @@ cd admin && npm install
 cd ../web_app && npm install
 ```
 
-### 2. Firebase Setup
-- The frontend (`web_app/`) uses **environment variables** for Firebase config.  
-These are not committed to GitHub, so you need to create your own `.env.local` file, following the template in .env.example in web_app.
+### 2. Set Up Your Own Firebase Project
 
+1. **Create a project**
+   - Go to Firebase Console → “Create project”.
+   - Google Analytics is optional.
+   - Under **Build**, enable:
+     - **Authentication → Email/Password**
+     - **Firestore Database** (Native mode)
+     - **Hosting**
+     - **Firebase AI Logic** (may require billing)
+
+2. **Add a Web App**
+   - Console → Project Overview → “Web” (</>) → Register app.
+   - Copy the config shown (apiKey, authDomain, etc.).
+
+3. **Local environment variables**
+  - The frontend (`web_app/`) uses **environment variables** for Firebase config.  
+These are not committed to GitHub, so you need to create your own `.env.local` file, following the template in .env.example in web_app.
 
 - The web app already contains the Firebase config in:
   ```
   web_app/src/config/Firebase.js
-  ```
-- **Authentication**: Email/Password sign-in is enabled  
-- **Firestore**: Database created in Native mode  
+  
 
+4. **Authentication**
+   - Console → Authentication → Sign-in method → enable **Email/Password**.
 
+5. **Firestore**
+   - Console → Firestore → Create database (Native mode).
+   - Paste these **rules** into Firestore → Rules tab → **Publish**:
+     ```js
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /sessionInfo/{uid} {
+           allow read, write: if request.auth != null && request.auth.uid == uid;
+           match /{document=**} {
+             allow read, write: if request.auth != null && request.auth.uid == uid;
+           }
+         }
+         match /megaData/groupCounts { allow read, update: if request.auth != null; }
+         match /xapi_statements/{docId} { allow create: if request.auth != null; }
+         match /clientErrors/{docId} { allow create: if request.auth != null; }
+       }
+     }
+     ```
 
-> If anything breaks, contact the Firebase project owner to confirm access and rules.
+6. **CLI project binding (for deployers)**
+   ```bash
+   npm i -g firebase-tools
+   firebase login
+   firebase use --add   # pick your project and give it an alias
+   ```
 
 ### 3. Register Users  
+
+**Service account key**  
+- The admin scripts require: `admin/serviceAccountKey.json`  
+- To set this up:
+  - Go to: **Firebase Console → Project Settings → Service accounts → Generate new private key**  
+  - Download the .json file
+  - Rename it to serviceAccountKey.json
+  - Place it inside the admin/ folder
+  - For reference, see admin/serviceAccountKey.example.json to understand the expected format
 
 The **admin scripts** let you register users in Firebase with a pre-assigned `groupNumber` and optional `previousResponses` data.  
 
@@ -156,23 +205,12 @@ cd admin
 node registerUser.js
 ```
 
-**Service account key**  
-- The admin scripts require: `admin/serviceAccountKey.json`  
-- To set this up:
-  - Go to: **Firebase Console → Project Settings → Service accounts → Generate new private key**  
-  - Download the .json file
-  - Rename it to serviceAccountKey.json
-  - Place it inside the admin/ folder
-  - For reference, see admin/serviceAccountKey.example.json to understand the expected format
-
-
-### 4. Run the Web App locally
+### 4. Run the Web App Locally
 ```bash
 cd web_app
 npm run dev
 ```
 Open the printed URL (e.g. `http://localhost:5173`) and log in with a pre-registered user.
-
 
 ### 5. Deploy Online
 ```bash
@@ -185,7 +223,8 @@ firebase init hosting
 npm run build
 firebase deploy --only hosting
 ```
-log in with a pre-registered user.
+Log in with a pre-registered user.
+
 
 ---
 
@@ -290,15 +329,13 @@ These sections contain different question types:
 -Likert scale
 -Likert matrix
 The **Next** button is enabled only after the current question is completed (choice selected or text word count validated).
-
 <img width="1073" height="541" alt="Screenshot 2025-09-02 at 8 26 56 PM" src="https://github.com/user-attachments/assets/d3e81996-6516-43ad-837b-d6f27586c325" />
 
-<img width="1067" height="386" alt="Screenshot 2025-09-02 at 8 27 40 PM" src="https://github.com/user-attachments/assets/f2992596-af7f-48db-bac3-d83ec12fcdb6" />
+<img width="1055" height="376" alt="Screenshot 2025-09-06 at 9 26 55 AM" src="https://github.com/user-attachments/assets/c9d2c3f4-634f-4b21-8096-431778544d3f" />
 
 <img width="1057" height="336" alt="Screenshot 2025-09-02 at 8 28 22 PM" src="https://github.com/user-attachments/assets/711ab97c-84d8-4853-8b63-58dd3ea44af5" />
 
 <img width="1130" height="783" alt="Screenshot 2025-09-02 at 9 11 28 PM" src="https://github.com/user-attachments/assets/7c205cff-7444-4beb-aa8a-4e0aeae36eef" />
-
 
 <img width="1074" height="358" alt="Screenshot 2025-09-02 at 8 29 32 PM" src="https://github.com/user-attachments/assets/114b5e28-12f4-45ec-abc9-bdcf16381c38" />
 
